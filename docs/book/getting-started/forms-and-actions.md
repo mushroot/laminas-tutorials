@@ -1,17 +1,16 @@
-# Forms and actions
+# 表单和操作
 
-## Adding new albums
+## 添加一个新Album
 
-We can now code up the functionality to add new albums. There are two bits to this part:
+我们现在可以编写添加新Album的功能了。这里将会有两部分去完成：
 
-- Display a form for user to provide details.
-- Process the form submission and store to database.
+- 为用户显示一个提交信息的表单。
+- 提交表单信息并且储存到数据库中。
 
-We will use laminas-form to do this. laminas-form manages the various form inputs as
-well as their validation, the latter of which is handled by the laminas-inputfilter
-component. We'll start by creating a new class, `Album\Form\AlbumForm`,
-extending from `Laminas\Form\Form`. Create the file
-`module/Album/src/Form/AlbumForm.php` with the following contents:
+我们将使用 laminas-form 来完成这个工作。laminas-form 管理表单的输入信息，同时也负责表单数据
+的验证，验证工作将会由 zend-inputfilter 组件来完成。我们将创建一个集成自
+ `Laminas\Form\Form` 的类 `Album\Form\AlbumForm`。在文件 
+ `module/Album/src/Form/AlbumForm.php` 内添加如下信息：
 
 ```php
 namespace Album\Form;
@@ -55,26 +54,23 @@ class AlbumForm extends Form
 }
 ```
 
-Within the constructor of `AlbumForm` we do several things. First, we set the
-name of the form as we call the parent's constructor. Then, we create four form
-elements: the id, title, artist, and submit button. For each item we set various
-attributes and options, including the label to be displayed.
+在 `AlbumForm` 的构造函数内我们将会完成几个步骤。首先，我们将会调用父类的构造函数，
+并且设置一个表单名称。接下来我们创建四个表单元素：id，title，artist，以及一个submit
+按钮。每项我们都将设置属性和选项，包括显示的标签。
 
-> ### Form method
+> ### 表单方法
 >
-> HTML forms can be sent using `POST` and `GET`. laminas-form defaults to `POST`;
-> therefore you don't have to be explicit in setting this option. If you want to
-> change it to `GET` however, set the method attribute in the constructor:
+> HTML表单提供 `POST` 和 `GET` 的方式，laminas-form 默认使用 `POST`；
+> 因此我们不必要明确的制定其属性。
+> 如果您想要制定 `GET` 方式，我们需要在构造函数中明确的制定：
 >
 > ```php
 > $this->setAttribute('method', 'GET');
 > ```
 
-We also need to set up validation for this form.  [laminas-inputfilter](https://docs.laminas.dev/laminas-inputfilter)
-provides a general purpose mechanism for input validation. It also provides an
-interface, `InputFilterAwareInterface`, which laminas-form will use in order to
-bind an input filter to a given form. We'll add this capability now to our
-`Album` class.
+我们同时需要为当前表单设置验证方法，参见 [laminas-inputfilter](https://laminas.org.cn/laminas-inputfilter)
+为输入框提供的通用验证机制。同样也提供了一个接口 `InputFilterAwareInterface`，
+为了给表单绑定输入验证 zend-form 将需要这个接口的实现。 我们将在 `Album` 类中添加。
 
 ```php
 // module/Album/src/Model/Album.php:
@@ -176,20 +172,18 @@ class Album implements InputFilterAwareInterface
 }
 ```
 
-The `InputFilterAwareInterface` defines two methods: `setInputFilter()` and
-`getInputFilter()`. We only need to implement `getInputFilter()` so we
-throw an exception from `setInputFilter()`.
+`InputFilterAwareInterface` 顶一个 `setInputFilter()` 和 `getInputFilter()`
+两个方法。我们只需要时实现 `getInputFilter()`，所以我们为 `setInputFilter()`
+提供了一个异常抛出。
 
-Within `getInputFilter()`, we instantiate an `InputFilter` and then add the
-inputs that we require. We add one input for each property that we wish to
-filter or validate. For the `id` field we add an `int` filter as we only need
-integers. For the text elements, we add two filters, `StripTags` and
-`StringTrim`, to remove unwanted HTML and unnecessary white space. We also set
-them to be *required* and add a `StringLength` validator to ensure that the user
-doesn't enter more characters than we can store into the database.
+在 `getInputFilter()` 内，我们使用 `InputFilter` 来添加我们需要的输入验证。
+我们依次为每个表单项添加希望验证的属性信息。`id` 项添加一个 `int` 验证，以确保
+只接收整数。对于文本元素，万能添加两个验证信息， `StripTags` 以及 `StringTrim` 
+删除不需要的 HTML 以及必须要的空格。同时需要 *required* 以及 `StringLength` 
+验证确保用户输入指定范围内的字符数，以便存入数据库。
 
-We now need to get the form to display and then process it on submission. This
-is done within the `AlbumController::addAction()`:
+现在我们需要获取表单并显示然后处理提交的信息。这些都将在 `AlbumController::addAction()`
+内完成：
 
 ```php
 // module/Album/src/Controller/AlbumController.php:
@@ -231,18 +225,16 @@ class AlbumController extends AbstractActionController
 }
 ```
 
-After adding the `Album` and `AlbumForm` classes to the import list, we
-implement `addAction()`. Let's look at the `addAction()` code in a little more
-detail:
+向 `Album` 以及 `AlbumForm` 类中添加信息后，我们回到 `addAction()`。让我们详细的
+查看 `addAction()` 中的代码：
 
 ```php
 $form = new AlbumForm();
 $form->get('submit')->setValue('Add');
 ```
 
-We instantiate `AlbumForm` and set the label on the submit button to "Add". We
-do this here as we'll want to re-use the form when editing an album and will use
-a different label.
+我们实例化了 `AlbumForm` 并且设置 submit 按钮的值为 "Add"。我们这样做是为了在编辑专辑
+的时候可以重用表单的配置信息，以便可以设置不同的标签。
 
 ```php
 $request = $this->getRequest();
@@ -252,10 +244,8 @@ if (! $request->isPost()) {
 }
 ```
 
-If the request is not a `POST` request, then no form data has been submitted,
-and we need to display the form. laminas-mvc allows you to return an array of data
-instead of a view model if desired; if you do, the array will be used to create
-a view model.
+如果非 `POST 请求，表单值将不会被提交，而是展示一个表单，laminas-mvc允许我们在需要的时候
+返回一个数组以替代视图模型，如果你这样做它将会使用这个数组自动创建一个视图模型：
 
 ```php
 $album = new Album();
@@ -263,9 +253,8 @@ $form->setInputFilter($album->getInputFilter());
 $form->setData($request->getPost());
 ```
 
-At this point, we know we have a form submission. We create an `Album` instance,
-and pass its input filter on to the form; additionally, we pass the submitted
-data from the request instance to the form.
+此时，我们获取一个提交的表单，我们将创建一个 `Album` 实例，并且通过其来进行表单验证，
+另外我们也通过其来向表单中传递请求的实例。
 
 ```php
 if (! $form->isValid()) {
@@ -273,26 +262,24 @@ if (! $form->isValid()) {
 }
 ```
 
-If form validation fails, we want to redisplay the form. At this point, the form
-contains information about what fields failed validation, and why, and this
-information will be communicated to the view layer.
+如果验证失败，我们重新展示表单。此时的表单组件将会指出验证失败项，以及为什么验证失败，
+这些信息都将被传递给视图。
 
 ```php
 $album->exchangeArray($form->getData());
 $this->table->saveAlbum($album);
 ```
 
-If the form is valid, then we grab the data from the form and store to the model
-using `saveAlbum()`.
+如果表单验证通过，我们将从表单中抓取数据并且使用模型的 `saveAlbum()` 方法将数据储存到
+数据库中。
 
 ```php
 return $this->redirect()->toRoute('album');
 ```
 
-After we have saved the new album row, we redirect back to the list of albums
-using the `Redirect` controller plugin.
+一旦我们保存了新的专辑行，我们将使用控制器插件 `Redirect` 跳转到专辑列表页。
 
-We now need to render the form in the `add.phtml` view script:
+现在我需要在 `add.phtml` 视图脚本中渲染表单：
 
 ```php
 <?php
@@ -314,43 +301,34 @@ echo $this->formSubmit($form->get('submit'));
 echo $this->form()->closeTag();
 ```
 
-We display a title as before, and then we render the form. laminas-form provides
-several view helpers to make this a little easier. The `form()` view helper has
-an `openTag()` and `closeTag()` method which we use to open and close the form.
-Then for each element with a label, we can use `formRow()` to render the label,
-input, and any validation error messages; for the two elements that are
-standalone and have no validation rules, we use `formHidden()` and
-`formSubmit()`.
+首先我们显示一个标题，接下来开始渲染表单。zend-form 提供了一些视图助手使得这项工作变得
+异常轻松。`form()` 视图助手包含 `openTag()` 以及 `closeTag()` 两个方法，用来数据表单
+头和尾。每个项都具有一个说明标签，我们使用 `formRow()`  来渲染这些标签、输入框以及验证
+失败后的错误信息。另有隐藏以及提交这两个独立的没有验证信息的项，我们使用 `formHidden()` 
+以及 `formSubmit()` 来渲染。
 
-Alternatively, the process of rendering the form can be simplified by using the
-bundled `formCollection` view helper. For example, in the view script above
-replace all the form-rendering echo statements with:
+另外，渲染视表单的过程中我们可以直接只用绑定的 `formCollection` 视图脚本。例如，上面
+所有的表单项渲染都可以使用下面代码代替：
 
 ```php
 echo $this->formCollection($form);
 ```
 
-This will iterate over the form structure, calling the appropriate label,
-element, and error view helpers for each element, but you still have to wrap
-`formCollection($form)` with the open and close form tags. This helps reduce the
-complexity of your view script in situations where the default HTML rendering of
-the form is acceptable.
+这边遍历所有的表单元素，调用适当的标签，元素以及每项中中的错误信息，但是 `formCollection($form)`
+中仍然不包括表单的头尾信息。这将帮助您在接受默认HTML呈现方式的情况下减少视图脚本的复杂性。
 
-You should now be able to use the "Add new album" link on the home page of the
-application to add a new album record, resulting in something like the
-following:
+您现在可以使用首页的 "Add new album" 链接，去添加一个新专辑，显示情况如下：
 
 ![Add Album Form](../images/user-guide.forms-and-actions.album-form-add-original.png)
 
-This doesn't look all that great! The reason is because Bootstrap, the CSS
-foundation used in the skeleton, has specialized markup for displaying forms! We
-can address that in our view script by:
+这看起来不是好！我们可以使用了骨架中 Bootstrap 这个 CSS 框架，用专门的标记信息用来
+呈现表单！我们可以使用下面的方法来完善我们的视图脚本：
 
-- Adding markup around the elements.
-- Rendering labels, elements, and error messages separately.
-- Adding attributes to elements.
+- 为元素添加标记信息.
+- 分别渲染 labels, elements, 以及错误信息.
+- 为元素添加属性.
 
-Update your `add.phtml` view script to read as follows:
+按照如下方式更新 `add.phtml` 视图脚本：
 
 ```php
 <?php
@@ -398,18 +376,17 @@ echo $this->formHidden($form->get('id'));
 echo $this->form()->closeTag();
 ```
 
-The results we get are much better:
+结果将会如下呈现:
 
 ![Add Album Form](../images/user-guide.forms-and-actions.add-album-form.png)
 
-The above is meant to demonstrate both the ease of use of the default form
-features, as well as some of the customizations possible when rendering forms.
-You should be able to generate any markup necessary for your site.
+以上是为了展示表单渲染中一些默认的特征以及一些自定义的方式。你可以为您的站点设置
+任何想要的标记信息。
 
-## Editing an album
+## 编辑专辑
 
-Editing an album is almost identical to adding one, so the code is very similar.
-This time we use `editAction()` in the `AlbumController`:
+编辑专辑有点类似于添加一个，代码也是比较接近的，现在我们使用 `AlbumController` 中的
+`editAction()` ：
 
 ```php
 // module/Album/src/Controller/AlbumController.php:
@@ -457,9 +434,8 @@ This time we use `editAction()` in the `AlbumController`:
     }
 ```
 
-This code should look comfortably familiar. Let's look at the differences from
-adding an album. Firstly, we look for the `id` that is in the matched route and
-use it to load the album to be edited:
+这段代码看起来如此熟悉。接下来让我们看看和添加专辑的不同之处。首先， `id` 是从路由中
+匹配待的并且使用其来加载专辑并且编辑：
 
 ```php
 $id = (int) $this->params()->fromRoute('id', 0);
@@ -478,15 +454,12 @@ try {
 }
 ```
 
-`params` is a controller plugin that provides a convenient way to retrieve
-parameters from the matched route. We use it to retrieve the `id` from the route
-we created within the Album module's `module.config.php`. If the `id` is zero,
-then we redirect to the add action, otherwise, we continue by getting the album
-entity from the database.
+`params` 是一个控制器插件，可以很方便的从路由中取出匹配值。我们使用它取出从我们创建的
+Album 模块中 `module.config.php` 文件里的 `id` 值。如果 `id` 为0，将会跳转到添加操作中，
+否则，我们将从数据库中获取 album 实体。
 
-We have to check to make sure that the album with the specified `id` can
-actually be found. If it cannot, then the data access method throws an
-exception. We catch that exception and re-route the user to the index page.
+我们必须确保对应 `id` 的专辑能被找到。如果不能方法将会抛出一个异常。我们可以捕获异常
+并且将用户重定向到首页。
 
 ```php
 $form = new AlbumForm();
@@ -494,18 +467,15 @@ $form->bind($album);
 $form->get('submit')->setAttribute('value', 'Edit');
 ```
 
-The form's `bind()` method attaches the model to the form. This is used in two ways:
+表单的 `bind()` 方法将模型赋值给表单。这将会有两种用途：
 
-- When displaying the form, the initial values for each element are extracted
-  from the model.
-- After successful validation in `isValid()`, the data from the form is put back
-  into the model.
+- 当现实表单的时候，可以为每个元素绑定初始值。
+- 通过 `isValid()` 验证通过后, 表单数据将会被传递会模型。
 
-These operations are done using a *hydrator* object. There are a number of
-hydrators, but the default one is `Laminas\Hydrator\ArraySerializable` which
-expects to find two methods in the model: `getArrayCopy()` and
-`exchangeArray()`. We have already written `exchangeArray()` in our `Album`
-entity, so we now need to write `getArrayCopy()`:
+这些操作都是使用 *hydrator* 对象类完成的。有几种 hydrators，默认使用的是 
+`Zend\Hydrator\ArraySerializable`，它会事先在模型中查找 `getArrayCopy()` 
+以及 `exchangeArray()` 这两个方法。我们已经在 `Album` 实体中添加了 `exchangeArray()` 
+现在我们需要去添加 `getArrayCopy()`:
 
 ```php
 // module/Album/src/Model/Album.php:
@@ -531,12 +501,10 @@ entity, so we now need to write `getArrayCopy()`:
 // ...
 ```
 
-As a result of using `bind()` with its hydrator, we do not need to populate the
-form's data back into the `$album` as that's already been done, so we can just
-call the mapper's `saveAlbum()` method to store the changes back to the
-database.
+由于使用 `bind()`来实现 hydrator，我们不需要自己填充表单数据到 `$album` 中，就可以直接
+调用 `saveAlbum()` 方法来将数据储存到数据库中。
 
-The view template, `edit.phtml`, looks very similar to the one for adding an album:
+视图模板 `edit.phtml` 同样和添加表单的视图类似：
 
 ```php
 <?php
@@ -584,24 +552,19 @@ echo $this->formHidden($form->get('id'));
 echo $this->form()->closeTag();
 ```
 
-The only changes are to use the ‘Edit Album' title and set the form's action to
-the 'edit' action too, using the current album identifier.
+唯一的改变就是我们使用了 Edit Album 的标题，并且设置了表单的 action 到 'edit' 方法上。.
 
-You should now be able to edit albums.
+现在您就可以去编辑专辑了。
 
-## Deleting an album
+## 删除一个 album
 
-To round out our application, we need to add deletion. We have a "Delete" link
-next to each album on our list page, and the naive approach would be to do a
-delete when it's clicked. This would be wrong. Remembering our HTTP spec, we
-recall that you shouldn't do an irreversible action using GET and should use
-POST instead.
+为了完善我们的专辑应用，我们需要去添加删除操作，我们已经在每个专辑列表的后天添加了删除
+链接。实际情况应该是我们点击链接就会去删除专辑，但是这样容易出现误操作。请记住我们的 
+HTTP 规范，我们不应该使用GET方法来实现一个不可逆的操作，应该使用 POST 方法来代替。
+我们最好在点击删除链接后显示一个确认的表单，如果我们点击 "yes"，我们将会删除信息。
+由于我们的表单很简单，我们将直接将代码写到我们的视图中（zend-form可以作为一个可选项！）。
 
-We shall show a confirmation form when the user clicks delete, and if they then
-click "yes", we will do the deletion. As the form is trivial, we'll code it
-directly into our view (laminas-form is, after all, optional!).
-
-Let's start with the action code in `AlbumController::deleteAction()`:
+让我们开始在 `AlbumController::deleteAction()` 中编写代码：
 
 ```php
 // module/Album/src/Controller/AlbumController.php:
@@ -635,9 +598,11 @@ Let's start with the action code in `AlbumController::deleteAction()`:
 //...
 ```
 
-As before, we get the `id` from the matched route, and check the request object's `isPost()` to determine whether to show the confirmation page or to delete the album. We use the table object to delete the row using the `deleteAlbum()` method and then redirect back the list of albums. If the request is not a POST, then we retrieve the correct database record and assign to the view, along with the `id`.
+首先，我们从路由中获取 `id`，并且检查请求对象是够 `isPost()`，以确保我们显示确认页还是进行
+删除操作。我们使用表单对象的 `deleteAlbum()` 方法来删除专辑，并且在删除后跳转到专辑列表页
+如果非 POST 请求，我们根据 `id` 从数据库中取回专辑信息，并在视图中显示。
 
-The view script is a simple form:
+视图脚本是一个非常简单的表单：
 
 ```php
 <?php
@@ -665,18 +630,16 @@ $this->headTitle($title);
 </form>
 ```
 
-In this script, we display a confirmation message to the user and then a form
-with "Yes" and "No" buttons. In the action, we checked specifically for the
-"Yes" value when doing the deletion.
+在视图脚本中我们为用户显示一个确认信息的表单，并且提供 "Yes" 和 "No" 两个按钮，
+在操作方法中，我们检查是否为 "Yes"，如果是则执行删除操作。
 
 ## Ensuring that the home page displays the list of albums
+## 确保首页显示 albums 列表
 
-One final point. At the moment, the home page, `http://laminas-mvc-tutorial.localhost/`
-doesn't display the list of albums.
+最后一点。当前主页 `http://laminas-mvc-tutorial.localhost/` 不会显示专辑列表。
 
-This is due to a route set up in the `Application` module's `module.config.php`.
-To change it, open `module/Application/config/module.config.php` and find the
-home route:
+这是由于我们在模块的 `module.config.php` 文件中设置了 `Application` 为主页。
+打开 `module/Application/config/module.config.php` 找到首页路由：
 
 ```php
 'home' => [
@@ -691,7 +654,7 @@ home route:
 ],
 ```
 
-Import `Album\Controller\AlbumController` at the top of the file:
+在文件顶部引入 `Album\Controller\AlbumController`:
 
 ```php
 use Album\Controller\AlbumController;
@@ -712,4 +675,4 @@ and change the `controller` from `Controller\IndexController::class` to `AlbumCo
 ],
 ```
 
-That's it &mdash; you now have a fully working application!
+现在，我们拥有了一个完整的可正常工作的应用了！

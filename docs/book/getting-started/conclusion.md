@@ -1,28 +1,27 @@
-# Conclusion
+# 结论
 
-This concludes our brief look at building a simple, but fully functional,
-Laminas laminas-mvc application.
+这里我们构建了一个简单但是功能比较齐全的 Laminas laminas-mvc 应用。
 
-In this tutorial we but briefly touched quite a number of different parts of the
-framework.
+在这个教程中我们简单的接触了框架的几个不同的部分。
 
-The most important part of applications built with laminas-mvc are the
-[modules](https://docs.laminas.dev/laminas-modulemanager/intro/), the
-building blocks of any [laminas-mvc application](https://docs.laminas.dev/laminas-mvc/quick-start/).
+建立 laminas-mvc 应用最重要的部分就是
+[modules](https://laminas.org.cn/laminas-modulemanager/intro/), 
+作为构建 [laminas-mvc application](https://laminas.org.cn/laminas-mvc/quick-start/) 的基础部件。
 
-To ease the work with dependencies inside our applications, we use the
-[service manager](https://docs.laminas.dev/laminas-servicemanager/intro/).
+为了配合我们应用不同部件之间的依赖关系，我们需要只用
+[service manager](https://laminas.org.cn/laminas-servicemanager/intro/).
 
-To be able to map a request to controllers and their actions, we use
-[routes](https://docs.laminas.dev/laminas-router/routing/).
+为了能够映射请求的路由到控制器中的操作上，我们需要使用
+[routes](https://laminas.org.cn/laminas-router/routing/).
 
-Data persistence was performed using
-[laminas-db](https://docs.laminas.dev/laminas-db/adapter/) to communicate with
-a relational database. Input data is filtered and validated with [input
-filters](https://docs.laminas.dev/laminas-inputfilter/intro/),
-and, together with [laminas-form](https://docs.laminas.dev/laminas-form/intro/),
-they provide a strong bridge between the domain model and the view layer.
+数据持久化使用
+[laminas-db](https://laminas.org.cn/laminas-db/adapter/)和数据库进行通讯。
+使用[input filters](https://laminas.org.cn/laminas-inputfilter/intro/),
+对输入的数据进行验证，
+并且配合 [laminas-form](https://laminas.org.cn/laminas-form/intro/),
+在视图模型以及域模型之间架起稳健的桥梁。
 
-[laminas-view](https://docs.laminas.dev/laminas-view/quick-start/) is
-responsible for the View in the MVC stack, together with a vast amount of
-[view helpers](https://docs.laminas.dev/laminas-view/helpers/intro/).
+[laminas-view](https://laminas.org.cn/laminas-view/quick-start/) 
+是负责在 MVC 栈中处理视图，并且提供了相当多的
+[view helpers](https://laminas.org.cn/laminas-view/helpers/intro/)
+可供使用。

@@ -1,61 +1,57 @@
-# Getting Started with Laminas MVC Applications
+# 开始会使用 Laminas MVC 创建应用
 
-This tutorial is intended to give an introduction to using Laminas by creating a simple database driven application using the Model-View-Controller paradigm. By the end you will have a working Laminas application and you can then poke around the code to find out more about how it all works and fits together.
+当前教程将会带领大家使用 Laminas 来创建一个带简易数据库的 MVC 应用。并将其完善成
+一个完整的 Laminas 应用，此期间你将会熟悉代码的使用，并且了解其内部工作原理。
 
-## Some assumptions
+## 假定条件
 
-This tutorial assumes that you are running at least PHP 5.6 with the Apache
-web server and MySQL, accessible via the PDO extension. Your Apache installation
-must have the `mod_rewrite` extension installed and configured.
+当前教程假设您已经配置好了 PHP 5.6或者以上版本以及Apache服务器和MySQL,并且开启了PDO扩展，并且您的Apache必须安装并配置好了 `mod_rewrite` 扩展。
 
-You must also ensure that Apache is configured to support `.htaccess` files.
-This is usually done by changing the setting:
+您同时也必须确保 Apache 配置并且支持 `.htaccess` 文件。
+通常使用下面的方式修改配置：
 
 ```apache
 AllowOverride None
 ```
 
-to
+改为：
 
 ```apache
 AllowOverride FileInfo
 ```
 
-in your `httpd.conf` file. Check with your distribution’s documentation for
-exact details. You will not be able to navigate to any page other than the home
-page in this tutorial if you have not configured `mod_rewrite` and `.htaccess`
-usage correctly.
+在你的 `httpd.conf` 文件中。仔细检查分发的文档详细信息。如果您没有正确的配置 `mod_rewrite` 
+和 `.htaccess`。您将不能访问除开首页以外的其他页面。
 
-> ### Getting started faster
+> ### 快速开始
 >
-> Alternatively, you can use any of the following as well:
+> 另外, 您可以使用下面两种方式的任何一种:
 >
-> - The built-in web server in PHP. Run `php -S 0.0.0.0:8080 -t public
->   public/index.php` in your application root to start a web server listening
->   on port 8080.
+> - PHP 内置服务器. 在您应用的根目录运行 
+>   `php -S 0.0.0.0:8080 -t public/public/index.php` 
+>   来启动一个监听8080端口的web服务。
+>
 > - Use the shipped `Vagrantfile`, by executing `vagrant up` from the
 >   application root. This binds the host machine's port 8080 to the Apache
 >   server instance running on the Vagrant image.
-> - Use the shipped [docker-compose](https://docs.docker.com/compose/)
->   integration, by executing `docker-compose up -d --build` from the
->   application root. This binds the host machine's port 8080 to the Apache
->   server instance running container.
+>
+> - 使用继承的 [docker-compose](https://docs.docker.com/compose/)
+>   在项目根目录执行 `docker-compose up -d --build`.
+>   将会在容器中运行一个 Apache 实例并绑定到主机的 8080 端口。
 
-## The tutorial application
+## 应用教程
 
-The application that we are going to build is a simple inventory system to
-display which albums we own. The main page will list our collection and allow us
-to add, edit and delete CDs. We are going to need four pages in our website:
+我们这边建立一个库存系统的应用来展示我们自己的专辑。主页将列出我们的专辑，并且允许我们去添加，
+编辑以及删除CD。在我们的站点中将会需要四个页面：
 
-Page           | Description
--------------- | -----------
-List of albums | This will display the list of albums and provide links to edit and delete them. Also, a link to enable adding new albums will be provided.
-Add new album  | This page will provide a form for adding a new album.
-Edit album     | This page will provide a form for editing an album.
-Delete album   | This page will confirm that we want to delete an album and then delete it.
+页面            | 描述
+-------------  | -----------
+专辑列表        | 当前页面显示专辑列表，并且提供编辑删除链接。同时提供一个添加新专辑的页面。
+添加新专辑      | 当前页面提供一个添加新专辑的表单。
+编辑专辑        | 当前页面一共一个编辑专辑的表单。
+删除专辑        | 当前页面确认我们是否想删除一个专辑，并且删除它。
 
-We will also need to store our data into a database. We will only need one table
-with these fields in it:
+我们需要存储我们的数据到数据库中，我们将需要一个如下的表单：
 
 Field name | Type         | Null? | Notes
 ---------- | ------------ | ----- | -----

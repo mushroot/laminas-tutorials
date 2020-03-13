@@ -1,23 +1,18 @@
-# Modules
+# 模块
 
-laminas-mvc uses a module system to organise your main application-specific
-code within each module. The `Application` module provided by the skeleton is used
-to provide bootstrapping, error, and routing configuration to the whole
-application. It is usually used to provide application level controllers for
-the home page of an application, but we are not going to use the default
-one provided in this tutorial as we want our album list to be the home page,
-which will live in our own module.
+laminas-mvc 使用一个模块系统来组织每个模块中主应用程序特定的代码。skeleton 内置的
+`Application` 模块提供整个系统的启动，错误，路由配置信息。通常被用来作为应用主页
+的控制器，当时当前教程我们不准备使用默认主页，我们希望专辑列表的注册存在于我们自己
+的模块中。
 
-We are going to put all our code into the `Album` module which will contain our
-controllers, models, forms and views, along with configuration. We’ll also tweak
-the `Application` module as required.
+我们要把所有包含控制器、模型、表单和视图，以及配置的的代码放入 Album 模块当中。我们还将
+根据需要调整 `Application` 模块。
 
-Let’s start with the directories required.
+先从目录结构开始。
 
-## Setting up the Album module
+## 创建 Album 模块
 
-Start by creating a directory called `Album` under `module` with the following
-subdirectories to hold the module’s files:
+首先在 `module` 目录下创建一个名为 `Album` 的目录并且按照下面的模式创建好子目录:
 
 ```text
 laminas-mvc-tutorial/
@@ -33,17 +28,14 @@ laminas-mvc-tutorial/
                     /album
 ```
 
-The `Album` module has separate directories for the different types of files we
-will have. The PHP files that contain classes within the `Album` namespace live
-in the `src/` directory. The view directory also has a sub-folder called `album`
-for our module's view scripts.
+我们将为不同类型的文件在 `Album` 模块中分离出不同的目录。在 `Album` 命名空间下的 PHP 
+文件在 `src/` 目录下。视图目录也存在一个名为 `album` 的子目录用来放置我们模块的视图脚本。
 
-In order to load and configure a module, Laminas provides a
-`ModuleManager`.  This will look for a `Module` class in the specified module
-namespace (i.e., `Album`); in the case of our new module, that means the class
-`Album\Module`, which will be found in `module/Album/src/Module.php`.
+为了加载并配置一个模块，Laminas 提供一个 `ModuleManager` 用来在指定的模块命名
+空间(i.e., `Album`)中寻找 `Module` 类。在我们的新模块中，即 `module/Album/src/Module.php`
+中的类 `Album\Module` 。
 
-Let's create that file now, with the following contents:
+现在我们按照下面的内容来创建这个文件：
 
 ```php
 namespace Album;
@@ -61,15 +53,14 @@ class Module implements ConfigProviderInterface
 
 The `ModuleManager` will call `getConfig()` automatically for us.
 
-### Autoloading
+### 自动加载
 
-While Laminas provides autoloading capabilities via its
-[laminas-loader](https://docs.laminas.dev/laminas-loader) component, we
-recommend using Composer's autoloading capabilities. As such, we need to inform
-Composer of our new namespace, and where its files live.
+Zend Framework 的 [zend-loader](https://laminas.org.cn/zend-loader) 组件
+提供自动加载功能，我们建议使用  Composer 的自动加载功能。例如，我们需要通知 Composer 
+一个新命名空间，并让其加载。
 
-Open `composer.json` in your project root, and look for the `autoload` section;
-it should look like the following by default:
+在您项目的根目录中打开 `composer.json` ，找到 `autoload` 项；
+默认如下所示：
 
 ```json
 "autoload": {
@@ -79,7 +70,7 @@ it should look like the following by default:
 },
 ```
 
-We'll now add our new module to the list, so it now reads:
+我们将添加一个新的模块到列表中，添加后如下：
 
 ```json
 "autoload": {
@@ -90,21 +81,18 @@ We'll now add our new module to the list, so it now reads:
 },
 ```
 
-Once you've made that change, run the following to ensure Composer updates its
-autoloading rules:
+一旦我们修改了配置，需要运行如下的代码来更新自动记载规则：
 
 ```bash
 $ composer dump-autoload
 ```
 
-## Configuration
+## 配置
 
-Having registered the autoloader, let’s have a quick look at the `getConfig()`
-method in `Album\Module`. This method loads the `config/module.config.php` file
-under the module's root directory.
+注册了自动加载后，再来查看 `Album\Module` 中的 `getConfig()`，当前方法加载 我们模块
+根目录中的 `config/module.config.php` 文件。
 
-Create a file called `module.config.php` under
-`laminas-mvc-tutorial/module/Album/config/`:
+在 `zf2-tutorial/module/Album/config/` 中创建名为 `module.config.php` 的文件：
 
 ```php
 namespace Album;
@@ -125,26 +113,20 @@ return [
 ];
 ```
 
-The config information is passed to the relevant components by the
-`ServiceManager`. We need two initial sections: `controllers` and
-`view_manager`. The controllers section provides a list of all the controllers
-provided by the module. We will need one controller, `AlbumController`; we'll
-reference it by its fully qualified class name, and use the laminas-servicemanager
-`InvokableFactory` to create instances of it.
+配置信息通过 `ServiceManager` 传递给相应的组件。我们需要初始化 `controllers` 和
+`view_manager` 两个部分。controllers部分列出模块内可被调用的控制器列表。我们现在
+需要使用 `AlbumController` 控制器；我们将使用完整类名来引用他，并且使用zend-servicemanager
+的 `InvokableFactory` 来为他创建一个实例。
 
-Within the `view_manager` section, we add our view directory to the
-`TemplatePathStack` configuration. This will allow it to find the view scripts
-for the `Album` module that are stored in our `view/` directory.
+`view_manager` 部分中，我们将添加我们的视图目录到 `TemplatePathStack` 配置中。
+这将允许程序通过 `Album` 模块的 `view/` 目录找到视图文件。
 
-## Informing the application about our new module
+## 将新模块告知给应用
 
-We now need to tell the `ModuleManager` that this new module exists. This is
-done in the application’s `config/modules.config.php` file which is provided
-by the skeleton application. Update this file so that the array it returns
-contains the `Album` module as well, so the file now looks like this:
+我们需要告知 `ModuleManager` 新模块的存在。这需要在骨架中提供的 `config/modules.config.php`
+文件中操作。更新其中的数组，使其包含`Album`模块，如下所示：
 
-(Changes required are highlighted using comments; original comments from the
-file are omitted for brevity.)
+( 更改提示行，文件原始注释信息已省略 )
 
 ```php
 return [
@@ -157,7 +139,6 @@ return [
 ];
 ```
 
-As you can see, we have added our `Album` module into the list of modules after
-the `Application` module.
+如此，我们已经在 `Application` 模块下添加了一个 `Album` 列表。
 
-We have now set up the module ready for putting our custom code into it.
+现在，我们已经将我们自己的代码添加到了模块中。

@@ -1,37 +1,31 @@
-# Routing and controllers
+# 路由和控制器
 
-We will build a very simple inventory system to display our album collection.
-The home page will list our collection and allow us to add, edit and delete
-albums. Hence the following pages are required:
+我们将建立一个非常简单的库存系统来展示我们的专辑列表。主页将会列出我们的专辑并且允许
+我们添加、编辑以及删除专辑，于是我们将需要下面的几个页面：
 
-Page          | Description
+页面          | 描述
 ------------- | -----------
-Home          | This will display the list of albums and provide links to edit and delete them. Also, a link to enable adding new albums will be provided.
-Add new album | This page will provide a form for adding a new album.
-Edit album    | This page will provide a form for editing an album.
-Delete album  | This page will confirm that we want to delete an album and then delete it.
+首页          | 本页将列出专辑并且提供编辑以及删除的链接。并且提供一个添加新专辑的的链接。
+添加新专辑     | 本页将会提供一个添加新专辑的表单。
+编辑专辑       | 本页将会提供一个编辑专辑的表单。
+删除专辑       | 本页将会提供一个删除确认信息，并在确认后删除表单。
 
-Before we set up our files, it's important to understand how the framework
-expects the pages to be organised. Each page of the application is known as an
-*action* and actions are grouped into *controllers* within *modules*. Hence, you
-would generally group related actions into a controller; for instance, a news
-controller might have actions of `current`, `archived`, and `view`.
+在建立文件之前，弄懂框架是如何组织页面是很必要的。框架的每个页面都是在 *模块* 的 *控制器* 
+中的一个 *action*。 因此，您需要将操作组织到控制器中；例如，一个新的控制器可能会有`current`、
+`archived` 以及 `view` 操作。
 
-As we have four pages that all apply to albums, we will group them in a single
-controller `AlbumController` within our `Album` module as four actions. The four
-actions will be:
+就像我们的专辑应用需要四个页面，我们将在 `Album` 模块中建立 `AlbumController` 控制器，并
+且添加如下的四个操作方法：
 
-Page          | Controller        | Action
+页面          | 控制器             | 操作
 ------------- | ----------------- | ------
-Home          | `AlbumController` | `index`
-Add new album | `AlbumController` | `add`
-Edit album    | `AlbumController` | `edit`
-Delete album  | `AlbumController` | `delete`
+主页          | `AlbumController` | `index`
+添加新专辑    | `AlbumController` | `add`
+编辑专辑      | `AlbumController` | `edit`
+删除专辑      | `AlbumController` | `delete`
 
-The mapping of a URL to a particular action is done using routes that are
-defined in the module’s `module.config.php` file. We will add a route for our
-album actions. This is the updated module config file with the new code
-highlighted using comments.
+我们需要使用模块的 `module.config.php` 文件的 router 项来将URL映射到每个方法上。
+我们将为参照如下注释行的操作为专辑的四个操作添加一个路由。
 
 ```php
 namespace Album;
@@ -46,7 +40,7 @@ return [
         ],
     ],
 
-    // The following section is new and should be added to your file:
+    // 下面行为新添加的，请更新您的文件
     'router' => [
         'routes' => [
             'album' => [
@@ -74,49 +68,39 @@ return [
 ];
 ```
 
-The name of the route is ‘album’ and has a type of ‘segment’. The segment route
-allows us to specify placeholders in the URL pattern (route) that will be mapped
-to named parameters in the matched route. In this case, the route is
-**`/album[/:action[/:id]]`** which will match any URL that starts with `/album`.
-The next segment will be an optional action name, and then finally the next
-segment will be mapped to an optional id. The square brackets indicate that a
-segment is optional. The constraints section allows us to ensure that the
-characters within a segment are as expected, so we have limited actions to
-starting with a letter and then subsequent characters only being alphanumeric,
-underscore, or hyphen. We also limit the id to digits.
+路由‘album’的类型为‘segment’，segment类型的路由允许我们在路由中使用别名来映射。当前
+路由为 **`/album[/:action[/:id]]`**，将会匹配以`/album`开头的URL，接下来是一个可选
+的 action 名称，以及映射一个可选的id。其中方括号内的都是可选项。constraints部分允许
+我们对可选项中的字符进行限制。因此我们限制 action 只能以字母开头，后面只能跟字母数字以
+及下滑线和短线。id只能为数字。
 
-This route allows us to have the following URLs:
+当前路由允许我们使用下面的URL:
 
-URL               | Page                         | Action
+URL               | 页面                         | 操作
 ----------------- | ---------------------------- | ------
-`/album`          | Home (list of albums)        | `index`
-`/album/add`      | Add new album                | `add`
-`/album/edit/2`   | Edit album with an id of 2   | `edit`
-`/album/delete/4` | Delete album with an id of 4 | `delete`
+`/album`          | 主页 (list of albums)        | `index`
+`/album/add`      | 添加新专辑                    | `add`
+`/album/edit/2`   | 编辑编号为 2 的专辑           | `edit`
+`/album/delete/4` | 删除编号为 4 的专辑           | `delete`
 
-### Create the controller
+### 创建控制器
 
-We are now ready to set up our controller. For laminas-mvc, the controller
-is a class that is generally called `{Controller name}Controller`; note that
-`{Controller name}` must start with a capital letter. This class lives in a file
-called `{Controller name}Controller.php` within the `Controller` subdirectory for
-the module; in our case that is `module/Album/src/Controller/`. Each action
-is a public method within the controller class that is named `{action
-name}Action`, where `{action name}` should start with a lower case
-letter.
+现在我们已经做好了创建控制器的准备，在 zend-mvc 中，控制器为一个名为  `{控制器名}Controller`
+的类；注意，`{控制器名}Controller` 必须以大写字母打头。类位于模块中 `Controller` 目录下的
+`{控制器名}Controller.php` 的文件中。当前项目中即 `module/Album/src/Controller/`目录。
+每个操作为在控制器中名为 `{操作名}Action`的公开方法，注 `{操作名}`需以小写字母开头。
 
-> #### Conventions not strictly enforced
+> #### 约定
 >
-> This is by convention. laminas-mvc doesn't provide many restrictions on
-> controllers other than that they must implement the `Laminas\Stdlib\Dispatchable`
-> interface. The framework provides two abstract classes that do this for us:
-> `Laminas\Mvc\Controller\AbstractActionController` and
-> `Laminas\Mvc\Controller\AbstractRestfulController`. We'll be using the standard
-> `AbstractActionController`, but if you’re intending to write a RESTful web
-> service, `AbstractRestfulController` may be useful.
+> 按照惯例，laminas-mvc 除了必须继承自  `Laminas\Stdlib\Dispatchable` 外不设任何限制。
+> 框架一共 `Laminas\Mvc\Controller\AbstractActionController` 和 
+> `Laminas\Mvc\Controller\AbstractRestfulController` 两个抽象类。我们通常使用
+> `AbstractActionController`，但如果您打算写 RESTful 服务，
+> `AbstractRestfulController` 可能更适合您。
 
-Let’s go ahead and create our controller class in the file
-`laminas-mvc-tutorials/module/Album/src/Controller/AlbumController.php`:
+让我们开始在
+`laminas-mvc-tutorials/module/Album/src/Controller/AlbumController.php`
+文件中创建我们的控制器：
 
 ```php
 namespace Album\Controller;
@@ -144,8 +128,8 @@ class AlbumController extends AbstractActionController
 }
 ```
 
-We have now set up the four actions that we want to use. They won't work yet
-until we set up the views. The URLs for each action are:
+现在我们已经建立了四个需要的操作。在建立视图之前他们任然不能正常运行。URL和操作
+一一对应如下：
 
 URL                                                  | Method called
 ---------------------------------------------------- | -------------
@@ -154,22 +138,19 @@ URL                                                  | Method called
 `http://laminas-mvc-tutorial.localhost/album/edit`   | `Album\Controller\AlbumController::editAction`
 `http://laminas-mvc-tutorial.localhost/album/delete` | `Album\Controller\AlbumController::deleteAction`
 
-We now have a working router and the actions are set up for each page of our
-application.
+现在我们已经在应用中为每个页面设置好了路由和操作方法。
 
-It's time to build the view and the model layer.
+接下来让我们建立视图和模型层。
 
-## Initialise the view scripts
+## 初始化视图脚本
 
-To integrate the view into our application, we need to create some view script
-files. These files will be executed by the `DefaultViewStrategy` and will be
-passed any variables or view models that are returned from the controller action
-method. These view scripts are stored in our module’s views directory within a
-directory named after the controller. Create these four empty files now:
+为了将视图整合到我们的应用中，我们需要创建一个视图脚本文件。这些文件将会被 `DefaultViewStrategy` 
+执行，并且传递一些变量并且通过控制器操作方法的返回值中获取变量。这些视图脚本保存在模块视图
+目录的控制器同名文件夹下。下面我们来创建如下四个空文件：
 
 - `module/Album/view/album/album/index.phtml`
 - `module/Album/view/album/album/add.phtml`
 - `module/Album/view/album/album/edit.phtml`
 - `module/Album/view/album/album/delete.phtml`
 
-We can now start filling everything in, starting with our database and models.
+现在我们可以对应用进行填充，并且开始添加数据库和模型。
