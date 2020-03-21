@@ -1,21 +1,20 @@
-# Using laminas-paginator in your Album Module
+# 在 Album 模块中使用 laminas-paginator
 
-In this tutorial, we will use the [laminas-paginator component](https://docs.laminas.dev/laminas-paginator/intro/)
-to add a handy pagination controller to the bottom of the album list.
+在这个教程中，我们使用 [laminas-paginator component](https://docs.laminas.dev/laminas-paginator/intro/)
+在专辑列表的底部添加一个便捷的分页控制器。
 
-Currently, we only have a handful of albums to display, so showing everything on
-one page is not a problem. However, how will the album list look when we have
-100 albums or more in our database? The standard solution to this problem is to
-split the data up into a number of pages, and allow the user to navigate around
-these pages using a pagination control. Just type "Laminas" into Google,
-and you can see their pagination control at the bottom of the page:
+
+当前，我们只有屈指可数的几个专辑可以显示，所以所有的专辑都显示在一个页面上市没有问题的。
+然而，如果我们数据中的专辑数超过了100或者更多呢？标准的解决方法就是将数据放置在不同的页码中，
+并允许用户使用分页控制器切换不同页码。就像你在 Google 中搜索 "Laminas"，
+你可以在页面的底部看见的分页控制器那样：
 
 ![Example pagination control](images/pagination.sample.png)
 
-## Preparation
+## 准备工作
 
-As before, we are going to use sqlite, via PHP's PDO driver. Create a text file
-`data/album-fixtures.sql` with the following contents:
+开始之前，我们使用 PHP 的 PDO 驱动来使用 sqlite 数据库。
+创建一个内容如下的 `data/album-fixtures.sql` 文件：
 
 ```sql
 INSERT INTO "album" ("artist", "title")
@@ -172,24 +171,20 @@ VALUES
     ("Various Artists", "Call the Midwife (Music From the TV Series)"
 );
 ```
+（测试数据选择了编写文档时 iTunes 专辑榜的前 150 调数据！）
 
-(The test data chosen happens to be the current 150 top iTunes albums at the
-time of writing!)
-
-Now create the database using the following:
+现在我们使用如下命令将数据导入数据库：
 
 ```bash
 $ sqlite data/laminastutorial.db < data/album-fixtures.sql
 ```
 
-Some systems, including Ubuntu, use the command `sqlite3`; check to see which
-one to use on your system.
+一些系统，例如 Ubuntu，需要使用 `sqlite3` 命令；根据你当前系统选择哪条命令。
 
-> ### Using PHP to create the database
+> ### 使用 PHP 创建数据库
 >
-> If you do not have Sqlite installed on your system, you can use PHP to load
-> the database using the same SQL schema file created earlier. Create the file
-> `data/load_album_fixtures.php` with the following contents:
+> 如果你没有在系统上安装 Sqlite，你可以使用 PHP 很容易的将 SQL 源文件导入数据库。
+> 创建一个内容如下的 `data/load_album_fixtures.php` 文件：
 >
 > ```php
 > <?php
@@ -201,42 +196,40 @@ one to use on your system.
 > fclose($fh);
 > ```
 >
-> Once created, execute it:
+> 然后执行:
 >
 > ```bash
 > $ php data/load_album_fixtures.php
 > ```
 
-This gives us a handy extra 150 rows to play with. If you now visit your album
-list at `/album`, you'll see a huge long list of 150+ albums; it's ugly.
+这将使我们额外拥有了 150 行的专辑。如果你现在访问 `/album` 查看你的专辑列表，
+你将会看见一个长达 150 行的专辑列表，这非常不友好。
 
-## Install laminas-paginator
+## 安装 laminas-paginator
 
-laminas-paginator is not installed or configured by default, so we will need to do
-that. Run the following from the application root:
+laminas-paginator 默认没有安装或配置的，因此我们可以通过如下命令安装:
 
 ```bash
 $ composer require laminas/laminas-paginator
 ```
 
-Assuming you followed the [Getting Started tutorial](getting-started/overview.md),
-you will be prompted by the [laminas-component-installer](https://docs.laminas.dev/laminas-component-installer)
-plugin to inject `Laminas\Paginator`; be sure to select the option for either
-`config/application.config.php` or `config/modules.config.php`; since it is the
-only package you are installing, you can answer either "y" or "n" to the "Remember this
-option for other packages of the same type" prompt.
+确保已经看过 [Getting Started tutorial](getting-started/overview.md),
+你可以使用 [laminas-component-installer](https://docs.laminas.dev/laminas-component-installer)
+脚本来注入 `Laminas\Paginator`; 并确保对
+`config/application.config.php` 或 `config/modules.config.php` 进行了相应配置;
+既然我们安装的是一个独立的包, 你可以在 "Remember this
+option for other packages of the same type" 时候选择 "y" or "n".
 
-> ### Manual configuration
+> ### 手动配置
 >
-> If you are not using laminas-component-installer, you will need to setup
-> configuration manually. You can do this in one of two ways:
+> 如果你没有使用 laminas-component-installer, 你将需要手动的来配置。
+> 你只需要两步：
 >
-> - Register the `Laminas\Paginator` module in either
->   `config/application.config.php` or `config/modules.config.php`. Make sure
->   you put it towards the top of the module list, before any modules you have
->   defined or third party modules you are using.
-> - Alternately, add a new file, `config/autoload/paginator.global.php`, with
->   the following contents:
+> - 在 `config/application.config.php` or `config/modules.config.php`
+>   注册 `Laminas\Paginator` 模块。
+>   确保将其放在了自己定义的以及正在使用的第三方模块列表的上方。
+> - 然后，添加一个新文件, `config/autoload/paginator.global.php`,
+>   内容如下:
 >
 >   ```php
 >   <?php
@@ -247,17 +240,15 @@ option for other packages of the same type" prompt.
 >   ];
 >   ```
 
-Once installed, our application is now aware of laminas-paginator, and even has
-some default factories in place, which we will now make use of.
+一旦安装，我们的应用就可以使用 laminas-paginator 了，我们可以使用一些默认的工厂方法来实现。
 
-## Modifying the AlbumTable
+## 修改 AlbumTable
 
-In order to let laminas-paginator handle our database queries automatically for us,
-we will be using the [DbSelect pagination adapter](https://docs.laminas.dev/laminas-paginator/usage/#the-dbselect-adapter)
-This will automatically manipulate and run a `Laminas\Db\Sql\Select` object to
-include the correct `LIMIT` and `WHERE` clauses so that it returns only the
-configured amount of data for the given page. Let's modify the `fetchAll` method
-of the `AlbumTable` model, so that it can optionally return a paginator object:
+为了让 laminas-paginator 自动请求我们数据库中的数据，
+我们将使用 [DbSelect pagination adapter](https://docs.laminas.dev/laminas-paginator/usage/#the-dbselect-adapter)
+laminas-paginator 会自动调用并运行一个包含了正确的  `LIMIT` and `WHERE` 条件的
+`Laminas\Db\Sql\Select` 对象，以确保只返回我们当前页面需要的数据。
+现在我们修改 `AlbumTable` 模型中的 `fetchAll` 方法，以便其可以返回一个分页对象：
 
 ```php
 // in module/Album/src/Model/AlbumTable.php:
@@ -310,20 +301,15 @@ class AlbumTable
 }
 ```
 
-This will return a fully configured `Paginator` instance. We've already told the
-`DbSelect` adapter to use our created `Select` object, to use the adapter that
-the `TableGateway` object uses, and also how to hydrate the result into a
-`Album` entity in the same fashion as the `TableGateway` does. This means that
-our executed and returned paginator results will return `Album` objects in
-exactly the same fashion as the non-paginated results.
+这将返回一个配置好的 `Paginator` 实例。我们已经告诉了我们的 `Select` 适配器使用我们创建的
+`Select` 对象，使用该适配器的 `TableGateway` 对象，以及使用 `TableGateway`
+相同的方式将结果混入 `Album` 实体。
+这将意味着我们的分页结果将会返回和没有使用分页结果类似的 `Album` 对象。
 
-## Modifying the AlbumController
+## 修改 AlbumController
 
-Next, we need to tell the album controller to provide the view with a
-`Pagination` object instead of a `ResultSet`. Both these objects can by iterated
-over to return hydrated `Album` objects, so we won't need to make many changes
-to the view script:
-
+接下来我们需要告诉专辑控制器我们提供了一个 `Pagination` 对象来代替 `ResultSet`。
+这这个对象都可以遍历并返回转换后的 `Album`  对象，因此我们不需要对视图脚本做过多的修改：
 
 ```php
 // in module/Album/src/Controller/AlbumController.php:
@@ -350,15 +336,13 @@ public function indexAction()
 /* ... */
 ```
 
-Here we are getting the configured `Paginator` object from the `AlbumTable`, and
-then telling it to use the page that is optionally passed in the querystring
-`page` parameter (after first validating it). We are also telling the paginator
-we want to display 10 albums per page.
+这时我们已经从 `AlbumTable` 中获取到了配置好了的 `Paginator` 对象，
+然后将可选的 `page` 参数传递给查询的字符串（验证后的）。
+同时我们也会告诉分页控制器希望每个页面显示10个专辑。
 
-## Updating the View Script
+## 更新视图脚本
 
-Now, tell the view script to iterate over the `pagination` view variable, rather
-than the `albums` variable:
+现在，我们需要在视图脚本中迭代 `pagination` 视图变量，而不是 `albums` 变量：
 
 ```php
 <?php // in module/Album/view/album/album/index.phtml:
@@ -389,19 +373,15 @@ $this->headTitle($title);
 </table>
 ```
 
-Checking the `/album` route on your website should now give you a list of just
-10 albums, but with no method to navigate through the pages. Let's correct that
-now.
+在你的站点中访问 `/album`你将会看见一个10个专辑的列表，但是没有方法进入到别的页面。
+下面我们将来实现这个功能。
 
-## Creating the Pagination Control Partial
+## 创建分页控制器局部视图
 
-Much like we created a custom breadcrumbs partial to render our breadcrumb in
-the [navigation tutorial](navigation.md#adding-breadcrumbs), we need to create a
-custom pagination control partial to render our pagination control just the way
-we want it. Again, because we are using Bootstrap, this will primarily involve
-outputting correctly formatted HTML. Let's create the partial in the
-`module/Application/view/partial/` folder, so that we can use the control in all
-our modules:
+就像我们在 [导航教程](navigation.md#adding-breadcrumbs) 中自定义 breadcrumbs 导航的那样，
+我们需要创建一个自定义的局部视图控制器来渲染我们的分页控制器。同时，因为我们使用 Bootstrap
+这将影响我们输出正确 HTML 的格式。让我们在 `module/Application/view/partial/`
+目录中创建 partial，以便我们能在所有的控制器中都能使用这个控制脚本：
 
 ```php
 <?php // in module/Application/view/partial/paginator.phtml: ?>
@@ -456,21 +436,16 @@ our modules:
 </div>
 <?php endif ?>
 ```
+partial 将会从创建连接到正确页面的分页控制（如果在分页控制器存在一个以上的页面的话）。
+这里将渲染一个上一页连接（并且在当前页面为首页的时候禁止这个连接），接下来渲染中间页的链接
+（并渲染包含样式的 partial，我们将在下一步将其传递给视图助手），最后，
+我们会创建一个下一页的链接（如果当前页面为最后一个则禁止）。注意我们是否通过其
+告诉你的控制器将 `page` 变量传递给了查询字符串。
 
-This partial creates a pagination control with links to the correct pages (if
-there is more than one page in the pagination object). It will render a previous
-page link (and mark it disabled if you are at the first page), then render a
-list of intermediate pages (that are passed to the partial based on the
-rendering style; we'll pass that to the view helper in the next step). Finally,
-it will create a next page link (and disable it if you're at the end). Notice
-how we pass the page number via the `page` querystring parameter which we have
-already told our controller to use to display the current page.
+### 在视图脚本中使用分页控制器
 
-### Using the PaginationControl View Helper
-
-To page through the albums, we need to invoke the
-[paginationControl view helper](https://docs.laminas.dev/laminas-paginator/usage/#rendering-pages-with-view-scripts)
-to display our pagination control:
+要对专辑实现翻页，我们需要调用 [paginationControl view helper](https://docs.laminas.dev/laminas-paginator/usage/#rendering-pages-with-view-scripts)
+来显示我们的分页控制器
 
 ```php
 <?php
@@ -489,7 +464,7 @@ to display our pagination control:
 ) ?>
 ```
 
-The above echoes the `paginationControl` helper, and tells it to use our
-paginator instance, the [sliding scrolling style](https://docs.laminas.dev/laminas-paginator/advanced/#custom-scrolling-styles),
-our paginator partial, and which route to use for generating links. Refreshing
-your application now should give you Bootstrap-styled pagination controls!
+上面使用了 `paginationControl` 助手，并且将分页实例传递与其，
+[sliding scrolling style](https://docs.laminas.dev/laminas-paginator/advanced/#custom-scrolling-styles),
+用于告诉我们的分页部分使用哪种产生链接的方式。
+现在刷新你的应用，你将会看见一个基于 Bootstrap-styled 的分页控制器！
