@@ -1,43 +1,35 @@
-# Unit Testing a Laminas MVC application
+# 在 Laminas MVC 应用中使用单元测试
 
-A solid unit test suite is essential for ongoing development in large projects,
-especially those with many people involved. Going back and manually testing
-every individual component of an application after every change is impractical.
-Your unit tests will help alleviate that by automatically testing your
-application's components and alerting you when something is not working the same
-way it was when you wrote your tests.
+对于一个大型的项目，在开发过程中进行扎实的单元测试以保证稳定性的非常有必要的，
+特别的那些面向多用户的的系统。
+每次修改之后都去手动测试是不现实的。
+单元测试将会自动去测试应用程序的某些功能和组件，并在按照你编写的测试时用例运行失败的时候向你发出警告。
 
-This tutorial is written in the hopes of showing how to test different parts of
-a laminas-mvc application. As such, this tutorial will use the application written
-in the [getting started user guide](getting-started/overview.md). It is in no way a
-guide to unit testing in general, but is here only to help overcome the initial
-hurdles in writing unit tests for laminas-mvc applications.
+本教程将会写一个怎么去测试一个 laminas-mvc 应用的不同部分的单元测试。
+因此，这个教程将使用[入门教程](getting-started/overview.md)。
+总体来说它不是一个完整的单元测试指南，
+而只是帮助我们为 laminas-mvc 应用编写单元测试做一个引导。
 
-It is recommended to have at least a basic understanding of unit tests,
-assertions and mocks.
+我们建议你需要对单元测试，断言以及 mocks 有一定的了解。
 
-[laminas-test](https://docs.laminas.dev/laminas-test/), which provides testing
-integration for laminas-mvc, uses [PHPUnit](http://phpunit.de/); this tutorial will
-cover using that library for testing your applications.
+[laminas-test](https://docs.laminas.dev/laminas-test/), 为 laminas-mvc 集成了
+[PHPUnit](http://phpunit.de/); 这个教程将会介绍如果用该库测试你的应用程序。
 
-## Installing laminas-test
+## 安装 laminas-test
 
-[laminas-test](https://docs.laminas.dev/laminas-test/) provides PHPUnit
-integration for laminas-mvc, including application scaffolding and custom
-assertions. You will need to install it:
+[laminas-test](https://docs.laminas.dev/laminas-test/) 为 zend-mvc 集成了
+PHPUnit, 包括脚手架以及自定义断言。您可以使用下面的方式安装：
 
 ```bash
 $ composer require --dev laminas/laminas-test
 ```
 
-The above command will update your `composer.json` file and perform an update
-for you, which will also setup autoloading rules.
+上面的命令将会更新你的 `composer.json` 文件，并且执行一个更新，以及更新自动加载规则。
 
-## Running the initial tests
+## 运行初始化测试
 
-Out-of-the-box, the skeleton application provides several tests for the shipped
-`Application\Controller\IndexController` class. Now that you have laminas-test
-installed, you can run these:
+框架应用为 `Application\Controller\IndexController` 类提供了几个开箱即用的测试。
+现在你已经安装了 laminas-test，你可以运行如下命令：
 
 ```bash
 $ ./vendor/bin/phpunit
@@ -46,12 +38,12 @@ $ ./vendor/bin/phpunit
 > ### PHPUnit invocation on Windows
 >
 > On Windows, you need to wrap the command in double quotes:
-> 
+>
 > ```bash
 > $ "vendor/bin/phpunit"
 > ```
 
-You should see output similar to the following:
+你将看见如下信息：
 
 ```text
 PHPUnit 5.4.6 by Sebastian Bergmann and contributors.
@@ -63,24 +55,20 @@ Time: 116 ms, Memory: 11.00MB
 OK (3 tests, 7 assertions)
 ```
 
-There might be 2 failing tests if you followed the getting started guide. This
-is because the `Application\IndexController` is overridden by the
-`AlbumController`. This can be ignored for now.
+如果你按照入门指南，可能会有2个失败的测试。那是因为 `AlbumController`
+重写了 `Application\IndexController`。我们先忽略。
 
-Now it's time to write our own tests!
+现在我们开始编写你自己的测试！
 
-## Setting up the tests directory
+## 建立测试工作目录
 
-As laminas-mvc applications are built from modules that should be
-standalone blocks of an application, we don't test the application in it's
-entirety, but module by module.
+和 laminas-mvc 应用一样，我们需要在模块中建立一个独立的模块，
+我们不会对整个应用进行测试，而是一个模块一个模块的进行。
 
-We will demonstrate setting up the minimum requirements to test a module, the
-`Album` module we wrote in the user guide, which then can be used as a base
-for testing any other module.
+我们将展示在 `Album` 模块中用于测试一个模块的最基本的情况，使其可以作为测试任何
+模块的基础部件。
 
-Start by creating a directory called `test` under `module/Album/` with
-the following subdirectories:
+开始在  `module/Album/` 目录下创建一个如下的 `test` 目录：
 
 ```text
 module/
@@ -89,7 +77,7 @@ module/
             Controller/
 ```
 
-Additionally, add an `autoload-dev` rule in your `composer.json`:
+接下来在 `composer.json` 中添加一个 `autoload-dev` 规则：
 
 ```json
 "autoload-dev": {
@@ -100,20 +88,18 @@ Additionally, add an `autoload-dev` rule in your `composer.json`:
 }
 ```
 
-When done, run:
+再运行:
 
 ```bash
 $ composer dump-autoload
 ```
 
-The structure of the `test` directory matches exactly with that of the module's
-source files, and it will allow you to keep your tests well-organized and easy
-to find.
+`test` 目录的结构与模块的源文件完全匹配，这将使得你测试有序并且易于找到。
 
-## Bootstrapping your tests
+## 启动您的测试
 
-Next, edit the `phpunit.xml.dist` file at the project root; we'll add a new
-test suite to it. When done, it should read as follows:
+接下来编辑项目根目录的 `phpunit.xml.dist` 文件；我们将为他创建一个新的测试套件。
+完成后，将会看见如下的样子：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -129,7 +115,7 @@ test suite to it. When done, it should read as follows:
 </phpunit>
 ```
 
-Now run your new Album test suite from the project root:
+现在在项目根目录运行 `phpunit -- testsuite Album`；您将会看见如下输出信息：
 
 ```bash
 $ ./vendor/bin/phpunit --testsuite Album
@@ -138,7 +124,7 @@ $ ./vendor/bin/phpunit --testsuite Album
 > ### Windows and PHPUnit
 >
 > On Windows, don't forget to wrap the `phpunit` command in double quotes:
-> 
+>
 > ```bash
 > $ "vendor/bin/phpunit" --testsuite Album
 > ```
@@ -153,15 +139,14 @@ Time: 0 seconds, Memory: 1.75Mb
 No tests executed!
 ```
 
-Let's write our first test!
+开始编写我们的第一个测试！
 
-## Your first controller test
+## 第一个控制器的测试
 
-Testing controllers is never an easy task, but the laminas-test component makes
-testing much less cumbersome.
+测试控制器从来都不是一项简单的任务，但是 laminas-test 组件可以帮您省掉不少的麻烦。
 
-First, create `AlbumControllerTest.php` under `module/Album/test/Controller/`
-with the following contents:
+首先在 `module/Album/test/Controller/` 目录下创建一个 `AlbumControllerTest.php`
+文件内容如下：
 
 ```php
 <?php
@@ -177,14 +162,13 @@ class AlbumControllerTest extends AbstractHttpControllerTestCase
 
     public function setUp()
     {
-        // The module configuration should still be applicable for tests.
-        // You can override configuration here with test case specific values,
-        // such as sample view templates, path stacks, module_listener_options,
-        // etc.
+        // 模块的配置文件同样适用于测试。
+        // 您可以在这里使用测试用例特殊值来重写配置信息。
+        // 例如，视图模板，栈路径，模块监听选项等
         $configOverrides = [];
 
         $this->setApplicationConfig(ArrayUtils::merge(
-            // Grabbing the full application configuration:
+            // 抓取完整的应用配置:
             include __DIR__ . '/../../../../config/application.config.php',
             $configOverrides
         ));
@@ -193,18 +177,15 @@ class AlbumControllerTest extends AbstractHttpControllerTestCase
 }
 ```
 
-The `AbstractHttpControllerTestCase` class we extend here helps us setting up
-the application itself, helps with dispatching and other tasks that happen
-during a request, and offers methods for asserting request params, response
-headers, redirects, and more. See the [laminas-test](https://docs.laminas.dev/laminas-test/phpunit/)
-documentation for more information.
+我们需要继承 `AbstractHttpControllerTestCase` 来对应用本身进行设置，帮助分发在
+请求期间发生的其他任务，提供维护请求参数的方法，响应信息，跳转等。详见文档
+ [laminas-test](https://docs.laminas.dev/laminas-test/phpunit/) 获取更多信息。
 
-The principal requirement for any laminas-test test case is to set the application
-config with the `setApplicationConfig()` method. For now, we assume the default
-application configuration will be appropriate; however, we can override values
-locally within the test using the `$configOverrides` variable.
+对任何 laminas-test 测试的主要条件都是在 `setApplicationConfig()` 方法中配置的。
+现在我们假定默认应用中的配置都是合适的；然而我们可以使用 `$configOverrides` 变量
+在测试中重写局部变量。
 
-Now, add the following method to the `AlbumControllerTest` class:
+现在，我们为 `AlbumControllerTest` 类添加一个如下的方法：
 
 ```php
 public function testIndexActionCanBeAccessed()
@@ -218,23 +199,21 @@ public function testIndexActionCanBeAccessed()
 }
 ```
 
-This test case dispatches the `/album` URL, asserts that the response code is
-200, and that we ended up in the desired module and controller.
+整个测试代码将会调用 `/album` 链接，判断响应代码是否为 200，
+并且判断控制器和方法是否匹配。
 
-> ### Assert against controller service names
+> ### 声明控制器的名称
 >
-> For asserting the *controller name* we are using the controller name we
-> defined in our  routing configuration for the Album module. In our example
-> this should be defined on line 16 of the `module.config.php` file in the Album
-> module.
+> 对于判断 *控制器名称*，我们使用在 Album 模块路由配置中定义的控制器名称。
+> 在我们的例子中，我们使用在 `module.config.php` 文件16行定义的 Album 模块。
 
-If you run:
+如果你运行:
 
 ```bash
 $ ./vendor/bin/phpunit --testsuite Album
 ```
 
-again, you should see something like the following:
+这时，你讲会看见下面的输出信息：
 
 ```text
 PHPUnit 5.4.6 by Sebastian Bergmann and contributors.
@@ -246,14 +225,14 @@ Time: 124 ms, Memory: 11.50MB
 OK (1 test, 5 assertions)
 ```
 
-A successful first test!
+这就是第一个成功的测试!
 
-## A failing test case
+## 一个失败的测试用例
 
-We likely don't want to hit the same database during testing as we use for our
-web property. Let's add some configuration to the test case to remove the
-database configuration. In your `AlbumControllerTest::setUp()` method, add the
-following lines right after the call to `parent::setUp();`:
+我们可能不希望在测试过程中使用同样的数据库来作为我们站点的数据源。
+接下来我们向测试用例中添加一些配置来删除数据库配置信息。
+在 `AlbumControllerTest::setUp()` 方法中，
+在调用 `parent::setUp();` 下添加如下代码：
 
 ```php
 $services = $this->getApplicationServiceLocator();
@@ -264,10 +243,10 @@ $services->setService('config', $config);
 $services->setAllowOverride(false);
 ```
 
-The above removes the 'db' configuration entirely; we'll be replacing it with
-something else before long.
+以上的代码完全删除了 'db' 配置信息；
+我们将在后面用别的信息来替代它。
 
-When we run the tests now:
+接下来我们运行这个测试：
 
 ```bash
 $ ./vendor/bin/phpunit --testsuite Album
@@ -277,7 +256,7 @@ F
 
 Time: 0 seconds, Memory: 8.50Mb
 
-There was 1 failure:
+这将会出现一个错误：
 
 1) AlbumTest\Controller\AlbumControllerTest::testIndexActionCanBeAccessed
 Failed asserting response code "200", actual status code is "500"
@@ -289,19 +268,17 @@ FAILURES!
 Tests: 1, Assertions: 0, Failures: 1.
 ```
 
-The failure message doesn't tell us much, apart from that the expected status
-code is not 200, but 500. To get a bit more information when something goes
-wrong in a test case, we set the protected `$traceError` member to `true` (which
-is the default; we set it to `false` to demonstrate this capability). Modify the
-following line from just above the `setUp` method in our `AlbumControllerTest` class:
+这个错误信息除了预期状态码不是 200 而是 500 以外，并没有告诉我们更多信息。
+为了能在这个测试实例出错的时候获取更多信息，我们设置 protected 成员 `$traceError`
+为 `true` （默认被设置为 `false`）在 `AlbumControllerTest` 类的 `setUp`
+方法上修改如下行：
 
 ```php
 protected $traceError = true;
 ```
 
-Running the `phpunit` command again and we should see some more information
-about what went wrong in our test. You'll get a list of the exceptions raised,
-along with their messages, the filename, and line number:
+再次运行 `phpunit` 命令，我们将会在测试中看见更多的错误信息。
+你将会得到一个抛出的异常列表，包含了信息，文件名，以及行号：
 
 ```text
 1) AlbumTest\Controller\AlbumControllerTest::testIndexActionCanBeAccessed
@@ -313,52 +290,42 @@ Exception 'Laminas\ServiceManager\Exception\ServiceNotCreatedException' with mes
 Exception 'Laminas\Db\Adapter\Exception\InvalidArgumentException' with message 'createDriver expects a "driver" key to be present inside the parameters' in {projectPath}/vendor/laminas/laminas-db/src/Adapter/Adapter.php:{lineNumber}
 ```
 
-Based on the exception messages, it appears we are unable to create a laminas-db
-adapter instance, due to missing configuration!
+根据这个错误消息可知，由于缺少配置文件，我们可能无法创建一个 laminas-db 适配器实例！
 
-## Configuring the service manager for the tests
+## 为测试配置 service manager
 
-The error says that the service manager can not create an instance of a database
-adapter for us. The database adapter is indirectly used by our
-`Album\Model\AlbumTable` to fetch the list of albums from the database.
+这个错误信息表明 service manager 不能为我们创建一个数据库适配器实例。
+数据库是适配器间接的使用我们的 `Album\Model\AlbumTable` 来访问数据库中的专辑列表。
 
-The first thought would be to create an instance of an adapter, pass it to the
-service manager, and let the code run from there as is. The problem with this
-approach is that we would end up with our test cases actually doing queries
-against the database. To keep our tests fast, and to reduce the number of
-possible failure points in our tests, this should be avoided.
+第一种方法是创建一个适配器实例，并将其传递给 service manager，并通过其使代码运行。
+这样做的问题就是我们的测试用例最终会对数据库进行查询。为了保证测试的快速进行，
+并且减少测试中的故障点，我们应该尽量避免这样做。
 
-The second thought would be then to create a mock of the database adapter, and
-prevent the actual database calls by mocking them out. This is a much better
-approach, but creating the adapter mock is tedious (but no doubt we will have to
-create it at some point).
+第二种方法是创建一个模拟的数据库驱动，通过模拟的数据库驱动阻止真实的数据库调用。
+这是一个非常好的途径，但是创建一个模拟的驱动是很乏味的（但毫无疑问，我们又不得不这么做）。
 
-The best thing to do would be to mock out our `Album\Model\AlbumTable` class
-which retrieves the list of albums from the database. Remember, we are now
-testing our controller, so we can mock out the actual call to `fetchAll` and
-replace the return values with dummy values. At this point, we are not
-interested in how `fetchAll()` retrieves the albums, but only that it gets called
-and that it returns an array of albums; these facts allow us to provide mock
-instances. When we test `AlbumTable` itself, we can write the actual tests for
-the `fetchAll` method.
+最好的办法当然就是模拟我们的 `Album\Model\AlbumTable` 类来从数据库中检索我们的专辑列表。
+记住，我们现在正在测试我们的控制器，因此我们可以模拟出实际调用的 `fetchAll`
+并且使用虚拟的值来替代。在这个问题上，我们不必在意 `fetchAll()` 是如何检索数据的，
+我们只需要知道他会返回一个专辑列表的数据；这样我们就能提供一个模拟的实例。
+当我们测试 `AlbumTable` 的时候，就可以编写 `fetchAll` 方法的测试。
 
-First, let's do some setup.
+首先，让我们做一些设置。
 
-Add import statements to the top of the test class file for each of the
-`AlbumTable` and `ServiceManager` classes:
+在测试类的顶部引入 `AlbumTable` 和 `ServiceManager` 类：
 
 ```php
 use Album\Model\AlbumTable;
 use Laminas\ServiceManager\ServiceManager;
 ```
 
-Now add the following property to the test class:
+现在向测试类中添加如下属性：
 
 ```php
 protected $albumTable;
 ```
 
-Next, we'll create three new methods that we'll invoke during setup:
+接下来我们创建三个方法以便我们在启动中调用：
 
 ```php
 protected function configureServiceManager(ServiceManager $services)
@@ -384,20 +351,17 @@ protected function mockAlbumTable()
 }
 ```
 
-By default, the `ServiceManager` does not allow us to replace existing services.
-`configureServiceManager()` calls a special method on the instance to enable
-overriding services, and then we inject specific overrides we wish to use.
-When done, we disable overrides to ensure that if, during dispatch, any code
-attempts to override a service, an exception will be raised.
+默认情况下，`ServiceManager` 不允许替换一个存在的服务。
+`configureServiceManager()` 调用了实例中一个特殊的方法允许重写服务，
+接下来我们就可以注入我们需要重写的部分了。最后我们禁止了重写，
+这样做是为了确保在分发过程中其他服务调用重写而引发异常抛出。
 
-The last method above creates a mock instance of our `AlbumTable` using
-[Prophecy](https://github.com/phpspec/prophecy), an object mocking framework
-that's bundled and integrated in PHPUnit. The instance returned by
-`prophesize()` is a scaffold object; calling `reveal()` on it, as done in the
-`configureServiceManager()` method above, provides the underlying mock object
-that will then be asserted against.
+上面最后一个方法使用 [Prophecy](https://github.com/phpspec/prophecy)
+创建了一个 `AlbumTable` 的模拟实例绑定并集成到 PHPUnit 中。
+`prophesize()` 返回的实例是一个脚手架实例；在上面的 `configureServiceManager()`
+中调用其 `reveal()` 方法，将为会针对断言提供一个底层的模拟对象。
 
-With this in place, we can update our `setUp()` method to read as follows:
+此刻，我们就按照如下可以更新我们的 `setUp()` 方法：
 
 ```php
 public function setUp()
@@ -419,8 +383,8 @@ public function setUp()
 }
 ```
 
-Now update the `testIndexActionCanBeAccessed()` method to add a line asserting
-the `AlbumTable`'s `fetchAll()` method will be called, and return an array:
+现在更新 `testIndexActionCanBeAccessed()` 方法添加一行 `AlbumTable` 将会调用的
+`fetchAll()` 方法的断言，并返回一个数组：
 
 ```php
 public function testIndexActionCanBeAccessed()
@@ -436,8 +400,7 @@ public function testIndexActionCanBeAccessed()
 }
 ```
 
-Running `phpunit` at this point, we will get the following output as the tests
-now pass:
+这时运行 `phpunit`，我们将会看见如下的输出结果：
 
 ```bash
 $ ./vendor/bin/phpunit --testsuite Album
@@ -450,10 +413,10 @@ Time: 105 ms, Memory: 10.75MB
 OK (1 test, 5 assertions)
 ```
 
-## Testing actions with POST
+## 使用 POST 方式测试操作
 
-A common scenario with controllers is processing POST data submitted via a form,
-as we do in the `AlbumController::addAction()`. Let's write a test for that.
+控制器比较常见的一个场景就是接收表单的 POST 数据并验证，就像我们在 `AlbumController::addAction()`
+中做的那样。我们开始编写测试。
 
 ```php
 public function testAddActionRedirectsAfterValidPost()
@@ -473,24 +436,20 @@ public function testAddActionRedirectsAfterValidPost()
 }
 ```
 
-This test case references two new classes that we need to import; add the
-following import statements at the top of the class file:
+这个测试实例我们需要引入两个类；在类文件的顶部添加如下声明：
 
 ```php
 use Album\Model\Album;
 use Prophecy\Argument;
 ```
 
-`Prophecy\Argument` allows us to perform assertions against the values passed as
-arguments to mock objects. In this case, we want to assert that we received an
-`Album` instance. (We could have also done deeper assertions to ensure the
-`Album` instance contained expected data.)
+`Prophecy\Argument` 允许我们通过模拟对象的参数来执行这个断言。在这个实例中，
+我们想要对 `Album` 实例进行断言。（我们可以做更深层次的断言，以确保 `Album` 实例包含了预期的数据。）
 
-When we dispatch the application this time, we use the request method POST, and
-pass data to it. This test case then asserts a 302 response status, and
-introduces a new assertion against the location to which the response redirects.
+接下来在应用分发的时候，我们使用 POST 方式请求，并且向其传递数据。
+这个测试实例断言了一个 302 的返回状态码，并且采用了一个新的针对回调跳转的断言。
 
-Running `phpunit` gives us the following output:
+运行 `phpunit` 将会给我们展示如下信息：
 
 ```bash
 $ ./vendor/bin/phpunit --testsuite Album
@@ -503,42 +462,31 @@ Time: 1.49 seconds, Memory: 13.25MB
 OK (2 tests, 8 assertions)
 ```
 
-Testing the `editAction()` and `deleteAction()` methods can be performed
-similarly; however, when testing the `editAction()` method, you will also need
-to assert against the `AlbumTable::getAlbum()` method:
+测试 `editAction()` 和 `deleteAction()` 方法都是使用类似的方法；然后我们在测试
+`editAction()` 方法的时候，需要对 `AlbumTable::getAlbum()` 方法进行断言：
 
 ```php
 $this->albumTable->getAlbum($id)->willReturn(new Album());
 ```
 
-Ideally, you should test all the various paths through each method. For example:
+理想的情况下， 你应该通过各种途径测试每个方法的变量。例如：
 
-- Test that a non-POST request to `addAction()` displays an empty form.
-- Test that a invalid data provided to `addAction()` re-displays the form, but
-  with error messages.
-- Test that absence of an identifier in the route parameters when invoking
-  either `editAction()` or `deleteAction()` will redirect to the appropriate
-  location.
-- Test that an invalid identifier passed to `editAction()` will redirect to the
-  album landing page.
-- Test that non-POST requests to `editAction()` and `deleteAction()` display
-  forms.
+- 测试 `addAction()` 在非 POST 请求的时候是否返回一个空的表单。
+- 测试当为 `addAction()` 提供一个无效的值得时候，重新展示表单，并且显示错误信息。
+- 测试在 `editAction()` 或 `deleteAction()` 路由参数中提供一个无效的参数时是否跳转到适当的地址。
+- 测试为 `editAction()` 提供一个无效的标识符的时候将会跳转到专辑页面。
+- 测试 `editAction()` 和 `deleteAction()` 在非 POST 请求的时候显示表单。
 
-and so on. Doing so will help you understand the paths through your application
-and controllers, as well as ensure that changes in behavior bubble up as test
-failures.
+等等。这样做将会帮助你理解进入你应用和控制器的途径，以确保不会因冒泡而造成的测试失败。
 
-## Testing model entities
+## 测试模型实体
 
-Now that we know how to test our controllers, let us move to an other important
-part of our application: the model entity.
+现在我们已经知道如何测试我们测控制器，接下来我们移步去测试我们应用的其他部分：模型实体。
 
-Here we want to test that the initial state of the entity is what we expect it
-to be, that we can convert the model's parameters to and from an array, and that
-it has all the input filters we need.
+这里我们需要对实体的初试状态进行测试，是否是和我们期望的一样，我们可以从数据中转换模型的参数，
+这样他就具备了我们需要过滤的数据。
 
-Create the file `AlbumTest.php` in `module/Album/test/Model` directory
-with the following contents:
+再 `module/Album/test/Model` 目录中创建 `AlbumTest.php` 文件，并添加如下内容：
 
 ```php
 <?php
@@ -635,16 +583,15 @@ class AlbumTest extends TestCase
 }
 ```
 
-We are testing for 5 things:
+我们会测试这 5 项：
 
-1. Are all of the `Album`'s properties initially set to `NULL`?
-2. Will the `Album`'s properties be set correctly when we call `exchangeArray()`?
-3. Will a default value of `NULL` be used for properties whose keys are not present in the `$data` array?
-4. Can we get an array copy of our model?
-5. Do all elements have input filters present?
+1. 是否 `Album` 所有的初始值都是 `NULL`?
+2. 当我们调用 `exchangeArray()` 的时候，`Album` 的所有值都被正确的改变?
+3. 当属性对应的键再 `$data` 数组中不存在的时候，属性是否会被定义为  `NULL`?
+4. 是否可以获取整个模型的数组副本?
+5. 所有的元素都是否被过滤了?
 
-If we run `phpunit` again, we will get the following output, confirming that our
-model is indeed correct:
+如果我们再次运行 `phpunit`, 我们将会获取如下信息，以确保我们的模型都被正确的配置：
 
 ```bash
 $ ./vendor/bin/phpunit --testsuite Album
@@ -657,19 +604,17 @@ Time: 186 ms, Memory: 13.75MB
 OK (7 tests, 24 assertions)
 ```
 
-## Testing model tables
+## 测试表模型
 
-The final step in this unit testing tutorial for laminas-mvc applications is
-writing tests for our model tables.
+我们 zend-mvc 应用的单元测试教程的最后一步就是为表模型建立单元测试。
 
-This test assures that we can get a list of albums, or one album by its ID, and
-that we can save and delete albums from the database.
+这个测试保证我们可以获得专辑的列表，或者通过 ID 获取其中一个专辑，
+并且我们可以从数据库中删除或者添加一个专辑。
 
-To avoid actual interaction with the database itself, we will replace certain
-parts with mocks.
+为了避免不影响数据库本身的数据，我们将使用模拟对象替换一部分。
 
-Create a file `AlbumTableTest.php` in `module/Album/test/Model/` with the
-following contents:
+再 `module/Album/test/Model/` 目录下创建一个 `module/Album/test/Model/`
+文件，添加如下数据：
 
 ```php
 <?php
@@ -700,15 +645,12 @@ class AlbumTableTest extends TestCase
 }
 ```
 
-Since we are testing the `AlbumTable` here and not the `TableGateway` class
-(which has already been tested in laminas-db), we only want to make sure
-that our `AlbumTable` class is interacting with the `TableGateway` class the way
-that we expect it to. Above, we're testing to see if the `fetchAll()` method of
-`AlbumTable` will call the `select()` method of the `$tableGateway` property
-with no parameters. If it does, it should return a `ResultSet` instance. Finally,
-we expect that this same `ResultSet` object will be returned to the calling
-method. This test should run fine, so now we can add the rest of the test
-methods:
+由于我们这里测试了 `AlbumTable` 而没有测试 `TableGateway` 类 （已经在 zend-db 中进行过测试了），
+我们仅仅只想确保 `AlbumTable` 类以我们期望的方式和 `TableGateway` 类进行互动。
+以上，我们测试了 `AlbumTable` 调用 `fetchAll()` 方法的时候是否调用了
+`$tableGateway` 属性的 `select()` 不带参数方法。
+如果有，应该返回一个 `ResultSet` 实例。最终，我们期望在调用方法的时候返回 `ResultSet` 对象。
+这个测试应该是可以正常运行的，所以我们现在可以添加其余的测试方法：
 
 ```php
 public function testCanDeleteAnAlbumByItsId()
@@ -772,20 +714,18 @@ public function testExceptionIsThrownWhenGettingNonExistentAlbum()
 }
 ```
 
-These tests are nothing complicated and should be self explanatory. In each
-test, we add assertions to our mock table gateway, and then call and assert
-against methods in our `AlbumTable`.
+这些测试没有什么复杂度应该比较容易理解。在每个测试中，我们为模拟的表单网关添加断言，
+然后调用我们 `AlbumTable` 中的方法添加断言。
 
-We are testing that:
+我们会做如下测试：
 
-1. We can retrieve an individual album by its ID.
-2. We can delete albums.
-3. We can save a new album.
-4. We can update existing albums.
-5. We will encounter an exception if we're trying to retrieve an album that
-   doesn't exist.
+1. 我们可以通过 ID 取回专辑信息。
+2. 我们可以删除专辑。
+3. 我们可以保存一个新专辑。
+4. 我们可以编辑一个存在的专辑。
+5. 如果我们试图去取出一个不存在的数据将会存抛出一个异常。
 
-Running `phpunit` one last time, we get the output as follows:
+最后运行 `phpunit` 将会获取如下信息：
 
 ```bash
 $ ./vendor/bin/phpunit --testsuite Album
@@ -798,13 +738,10 @@ Time: 151 ms, Memory: 14.00MB
 OK (13 tests, 31 assertions)
 ```
 
-## Conclusion
+## 结论
 
-In this short tutorial, we gave a few examples how different parts of a laminas-mvc
-application can be tested. We covered setting up the environment for testing,
-how to test controllers and actions, how to approach failing test cases, how to
-configure the service manager, as well as how to test model entities and model
-tables.
+在这个简短的教程中，我们给出了一些怎么测试 zend-mvc 不同部分的示例。
+我们讨论了测试环境，如何测试控制器和操作，如何对待失败的情况，
+如何配置服务管理器，以及怎么去测试模型示例和表单模型。
 
-This tutorial is by no means a definitive guide to writing unit tests, just a
-small stepping stone helping you develop applications of higher quality.
+本教程绝对不是一个指导单元测试的指导手册，只是一个帮助您开发更高级应用程序的垫脚石。
