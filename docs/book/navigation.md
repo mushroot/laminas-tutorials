@@ -1,20 +1,17 @@
-# Using laminas-navigation in your Album Module
+# 在 Album 模块中使用 laminas-navigation
 
-In this tutorial we will use the [laminas-navigation component](https://docs.laminas.dev/laminas-navigation/intro/)
-to add a navigation menu to the black bar at the top of the screen, and add
-breadcrumbs above the main site content.
+当前教程我们将使用 [zend-navigation 组件](https://docs.laminas.dev/laminas-navigation/intro/)
+来添加一个导航菜单到屏幕顶端的黑色导航栏上，并且在站点内容的上面添加一个面包屑导航。
 
-## Preparation
+## 准备
 
-In a real world application, the album browser would be only a portion of a
-working website. Usually the user would land on a homepage first, and be able to
-view albums by using a standard navigation menu. So that we have a site that is
-more realistic than just the albums feature, lets make the standard skeleton
-welcome page our homepage, with the `/album` route still showing our album module.
-In order to make this change, we need to undo some work we did earlier.
-Currently, navigating to the root of your app (`/`) routes you to the
-`AlbumController`'s default action. Let's undo this route change so we have two
-discrete entry points to the app, a home page, and an albums area.
+在实际应用中，专辑页面将只是整个站点的一部分。通常，用户会访问首页，
+接下来会通过使用一个标准的导航菜单来访问专辑页面。
+因此我们的网站将来实现的不仅仅是只有专辑功能，让框架的欢迎页面作为主页，
+并使用 `/album` 路由来访问我们的专辑模块。
+我们实现这个功能，我们需要对之前的代码进行一些小的修改。
+当前，应用的 (`/`) 路由默认指向 `AlbumController`。
+我们需求撤销这个路由操作，这样我们的应用就拥有了两个入口，首页和专辑页面。
 
 ```php
 // In module/Application/config/module.config.php:
@@ -30,41 +27,36 @@ discrete entry points to the app, a home page, and an albums area.
 ],
 ```
 
-(You can also now remove the import for the `Album\Controller\AlbumController`
-class.)
+(你现在还可以移除 `Album\Controller\AlbumController` 类的引入)
 
-This change means that if you go to the home page of your application
-(`http://localhost:8080/` or `http://laminas-mvc-tutorial.localhost/`), you see the
-default skeleton application introduction. Your list of albums is still
-available at the `/album` route.
+这个修改意味着当我们访问我们应用的首页
+(`http://localhost:8080/` or `http://laminas-mvc-tutorial.localhost/`),
+的时候，你将会看见框架的默认介绍页。你的专辑页面任然可以通过 `/album` 访问。
 
-## Setting Up laminas-navigation
+## 设置 laminas-navigation
 
-First, we need to install laminas-navigation. From your root directory, execute the
-following:
+首先，我们需要安装 laminas-navigation， 在你项目的根目录执行如下代码：
 
 ```bash
 $ composer require laminas/laminas-navigation
 ```
 
-Assuming you followed the [Getting Started tutorial](getting-started/overview.md),
-you will be prompted by the [laminas-component-installer](https://docs.laminas.dev/laminas-component-installer)
-plugin to inject `Laminas\Navigation`; be sure to select the option for either
-`config/application.config.php` or `config/modules.config.php`; since it is the
-only package you are installing, you can answer either "y" or "n" to the "Remember this
-option for other packages of the same type" prompt.
+假定你已经看过了 [入门教程](getting-started/overview.md),
+你将按照 [laminas-component-installer](https://docs.laminas.dev/laminas-component-installer)
+插件的提示来注入 `Zend\Navigation`; 确保选择了对
+`config/application.config.php` 或 `config/modules.config.php` 操作的选项;
+既然为安装单一的包，你可以选择 "y" 或 "n" 来记住“是否对相同的操作采用同样的选择” 选项。
 
-> ### Manual configuration
+> ### 手动配置
 >
-> If you are not using laminas-component-installer, you will need to setup
-> configuration manually. You can do this in one of two ways:
+> 如果你没有使用 zend-component-installer，你讲需要手动来配置。
+> 你只需要两步：
 >
-> - Register the `Laminas\Navigation` module in either
->   `config/application.config.php` or `config/modules.config.php`. Make sure
->   you put it towards the top of the module list, before any modules you have
->   defined or third party modules you are using.
-> - Alternately, add a new file, `config/autoload/navigation.global.php`, with
->   the following contents:
+> - 在 `config/application.config.php` or `config/modules.config.php`
+>   中注册  `Zend\Navigation` 模块.
+>   确保将其放在了你自己定义的以及你正在使用的第三方模块列表的顶部。
+> - 然后，添加一个新文件 `config/autoload/navigation.global.php`,
+>   内容如下：
 >
 >   ```php
 >   <?php
@@ -75,14 +67,13 @@ option for other packages of the same type" prompt.
 >   ];
 >   ```
 
-Once installed, our application is now aware of laminas-navigation, and even has
-some default factories in place, which we will now make use of.
+一旦安装，我们的应用就可以使用 laminas-navigation 了，我们可以使用一些默认的工厂方法来实现。
 
-## Configuring our Site Map
+## 配置我们的站点导航
 
-Next up, we need laminas-navigation to understand the hierarchy of our site.
-To do this, we can add a `navigation` key to our configuration, with the site
-structure details. We'll do that in the `Application` module configuration:
+接下来我们需要让 laminas-navigation 识别我们站点的结构级别。
+我们需要在配置中添加一个 `navigation` 键，来呈现站点的结构信息。
+我们将会在 `Application` 模块的配置文件中去配置：
 
 ```php
 // in module/Application/config/module.config.php:
@@ -123,17 +114,15 @@ return [
 ];
 ```
 
-This configuration maps out the pages we've defined in our Album module, with
-labels linking to the given route names and actions. You can define highly complex
-hierarchical sites here with pages and sub-pages linking to route names,
-controller/action pairs, or external uris. For more information, see the
-[laminas-navigation quick start](https://docs.laminas.dev/laminas-navigation/quick-start/).
+这个配置映射出了我们专辑模块的页面，包括了导航到操作的链接以及标签。
+你可以通过页面以及子页面来定义层级更加复杂的针对路由，控制器/操作或者指向外部URI的链接。
+更多操作详见[zend-navigation quick start](https://docs.laminas.dev/laminas-navigation/quick-start/).
 
-## Adding the Menu View Helper
+## 在视图助手中添加目录
 
-Now that we have the navigation helper configured by our service manager and
-merged config, we can add the menu to the title bar to our layout by
-using the [menu view helper](https://docs.laminas.dev/laminas-navigation/helpers/menu/):
+现在我们的配置通过服务管理器（service manager ）合并到了视图助手中，我们可以使用
+[menu view helper](https://docs.laminas.dev/laminas-navigation/helpers/menu/)
+想我们的布局层添加导航条了。
 
 ```php
 <?php // in module/Application/view/layout/layout.phtml: ?>
@@ -143,10 +132,8 @@ using the [menu view helper](https://docs.laminas.dev/laminas-navigation/helpers
 </div>
 ```
 
-The navigation helper is provided by default with laminas-view, and uses the service
-manager configuration we've already defined to configure itself automatically.
-Refreshing your application, you will see a working menu; with just a few tweaks
-however, we can make it look even better:
+导航助手（navigation helper）默认由 laminas-view 提供，服务管理器会自动配置我们定义好的配置信息。
+刷新你的应用，你将会看见一个正常运行的菜单；同时我们可以做一些调整，来让导航更加好看：
 
 ```php
 <?php // in module/Application/view/layout/layout.phtml: ?>
@@ -160,23 +147,20 @@ however, we can make it look even better:
 </div>
 ```
 
-Here we tell the renderer to give the root `<ul>` the class of `nav` (so that
-Bootstrap styles the menu correctly), and only render the first level of any
-given page. If you view your application in your browser, you will now see a
-nicely styled menu appear in the title bar.
+这里我们为导航的根元素 `<ul>` 添加布局属性（class） `nav`
+（这里使用的是 Bootstrap 框架），并且只展示一级导航页面。
+如果你正在浏览器中浏览你的应用，你将会看见一个美丽的导航条。
 
-The great thing about laminas-navigation is that it integrates with laminas-router in
-order to highlight the currently viewed page. Because of this, it sets the
-active page to have a class of `active` in the menu; Bootstrap uses this to
-highlight your current page accordingly.
+zend-navigation 最实用的就是他会与路由集成，并且高亮正在访问的导航。
+因为我们设置了当前活动页面导航的布局属性为 `active`；
+Bootstrap 使用这个属性来高亮当前页面。
 
-## Adding Breadcrumbs
+## 添加 Breadcrumbs 导航
 
-Adding breadcrumbs follows the same process. In our `layout.phtml` we want to
-add breadcrumbs above the main content pane, so our users know exactly
-where they are in our website. Inside the container `<div>`, before we
-output the content from the view, let's add a breadcrumb by using the
-[breadcrumbs view helper](https://docs.laminas.dev/laminas-navigation/helpers/breadcrumbs/).
+添加 Breadcrumbs 的步骤类似。我们想要在你的 `layout.phtml` 中添加一个和上面类似的
+Breadcrumbs 导航在页面信息的顶部，一遍我们的用户知道自己在我们站点当前访问的位置。
+在前面添加容器 `<div>`，并通过
+[breadcrumbs view helper](https://docs.laminas.dev/laminas-navigation/helpers/breadcrumbs/) 添加一个 breadcrumb 导航：
 
 ```php
 <?php // module/Application/view/layout/layout.phtml: ?>
@@ -187,12 +171,10 @@ output the content from the view, let's add a breadcrumb by using the
 </div>
 ```
 
-This adds a simple but functional breadcrumb to every page (we tell it to render
-from a depth of 0 so we see all page levels), but we can do better than that!
-Because Bootstrap has a styled breadcrumb as part of its base CSS, let's add
-a partial that outputs the `<ul>` using Bootstrap styles. We'll create it in the
-`view` directory of the `Application` module (this partial is application wide,
-rather than album specific):
+这将为我们的页面添加一个简单而实用的 breadcrumb （我们设置其渲染深度为0，这样我们就可以看见所有页面的基表）
+但是我们可以做的更好。因为 Bootstrap 框架拥有一个 breadcrumb 布局样式，让我们添加一个使用
+Bootstrap 样式的partial。我们将会在 `Application` 模块的 `view` 目录来创建它
+（partial 将会在应用这被广泛的调用，而不是仅仅在 album 中使用）:
 
 ```php
 <?php // in module/Application/view/partial/breadcrumb.phtml: ?>
@@ -217,12 +199,9 @@ rather than album specific):
     <?php endforeach; ?>
 </ul>
 ```
+注意 partial 是接收 `Laminas\View\Model\ViewModel` 中使用 `pages` 属性来设置的数组参数来进行渲染的。  
 
-Notice how the partial is passed a `Laminas\View\Model\ViewModel` instance with the
-`pages` property set to an array of pages to render.
-
-Now we need to tell the breadcrumb helper to use the partial we have just
-written:
+现在，我们需要告诉 breadcrumb 视图助手使用我们编写的 partial：
 
 ```php
 <?php // in module/Application/view/layout/layout.phtml: ?>
@@ -236,4 +215,4 @@ written:
 </div>
 ```
 
-Refreshing the page now gives us a styled set of breadcrumbs on each page.
+刷新页面，我们将会在每个页面中看见一个具有样式的 breadcrumbs。
