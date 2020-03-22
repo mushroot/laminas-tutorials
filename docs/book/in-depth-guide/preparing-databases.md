@@ -1,77 +1,62 @@
 # Preparing for Different Databases
 
-In the previous chapter, we created a `PostRepository` that returns some data
-from blog posts. While the implementation was adequate for learning purposes, it
-is quite impractical for real world applications; no one would want to modify
-the source files each time a new post is added! Fortunately, we an always turn
-to databases for the actual storage of posts; all we need to learn is how to
-interact with databases within our application.
+在上一个章节中，我们创建了一个 `PostRepository` 用来返回一些博客帖子的数据。
+这是以学习为目的，在现实中这是个不切实际的应用；
+没有人会希望在每次添加新帖子的时候去修改源代码！
+幸运的是我们可以将数据库作为帖子储存的实际位置；
+我们需要学习的就是在应用中如何与数据库进行交互。
+但是有个小问题：存在着许多的数据库系统，包括关系数据库、文档数据库、键/值存储以及图形数据库。
+你可能比较倾向于直接去解决适合你当前应用程序的需求的方案，
+但是最佳的实践方案是在你真实数据库交互方案上另加一层抽象的访问方案。
+在我们上一个章节中使用的 *repository* 方法就是这样一种实践，其主要针对的是 *queries*。
+在本节中，我们将会扩展它添加 *command* 功能来实现创建、更新和删除操作。
 
-There's one small catch: there are many database backend systems, including
-relational databases, documentent databases, key/value stores, and graph
-databases. You may be inclined to code directly to the solution that fits your
-application's immediate needs, but it is a better practice to create another
-layer in front of the actual database access that abstracts the database
-interaction. The *repository* approach we used in the previous chapter is one
-such approach, primarily geared towards *queries*. In this section, we'll expand
-on it to add *command* capabilities for creating, updating, and deleting
-records.
+## 什么是数据库抽象化？
 
-## What is database abstraction?
-
-"Database abstraction" is the act of providing a common interface for all
-database interactions. Consider a SQL and a NoSQL database; both have methods
-for CRUD (Create, Read, Update, Delete) operations. For example, to query the
-database against a given row in MySQL you might use
+“数据库抽象化（Database abstraction）” 是为所有的数据库交互提供一个通用接口的行为。
+对于 SQL 和 NoSQ 数据库；他们都有增删改查（Create, Read, Update, Delete）操作。
+例如，从 Mysql 中请求并获取一个给定的行我们你可能使用下面的方式
 
 ```php
 $results = mysqli_query('SELECT foo FROM bar')`;
 ```
 
-However, for MongoDB,  for example you'd use something like:
+然而，对于 MongoDB， 使用类似的方式：
 
 ```php
 $results = $mongoDbClient->app->bar->find([], ['foo' => 1, '_id' => 0])`;
 ```
 
-Both engines would give you the same result, but the execution is different.
+两个引擎都将给你同样的结果，但是执行方式却是不同的。
 
-So if we start using a SQL database and write those codes directly into our
-`PostRepository` and a year later we decide to switch to a NoSQL database, the
-existing implementation is useless to us. And in a few years later, when a new
-persistence engine pops up, we have to start over yet again.
+所以如果最开始我们使用 SQL 数据库并直接将代码写进 `PostRepository`
+一年后我们决定切换到 NoSQL 数据去，那么以前的实现方式就变得没有用处了。
+几年后有出现一个新的引擎，我们又不得不又重新开始。
 
-If we hadn't created an interface first, we'd also likely need to change our
-consuming code! 
+如果我们最开始没有创建接口，我们就可能需要不断的修改我们的代码！
 
-On top of that, we may find that we want to use some sort of distributed caching
-layer for *read* operations (fetching items), while *write* operations will be
-written to a relational database. Most likely, we don't want our controllers to
-need to worry about those implementation details, but we will want to ensure
-that we account for this in our architecture.
+最重要的是，我们我们可能会使用某种分布式缓存层来实现 *read* 操作（获取项目），
+当 *write* 操作的时候我们会直接将其写入真实的数据库。最理想的情况，
+我们不希望控制器更多的关心这些细节，但我们需要在架构的时候考虑到这点。
 
-At the code level, the interface is our abstraction layer for dealing with
-differences in implementations. However, currently, we only deal with queries.
-Let's expand on that.
+在代码层，接口就是为我们处理不同实现的抽象层，我们现在只处理查询。
+让我们来仔细讨论下。
 
-## Adding command abstraction
+## 添加抽象操作
 
-Let's first think a bit about what possible database interactions we can think
-of. We need to be able to:
+我们先想下能有哪些可能与数据库的交互，我们可能需要这些：
 
-- find a single blog post
-- find all blog posts
-- insert new blog post
-- update existing blog posts
-- delete existing blog posts
+- 查询一个独立的帖子列表
+- 查询所有的帖子
+- 插入一个新的帖子
+- 更新一个存在的帖子
+- 删除一个存在的帖子
 
-At this time, our `PostRepositoryInterface` deals with the first two.
-Considering this is the layer that is most likely to use different backend
-implementations, we probably want to keep it separate from the operations that
-cause changes.
+这里，我们的 `PostRepositoryInterface` 先处理前面两个需求。
+考虑到这是最有可能采用不同后端来实现的部分，我们可能希望其与更改才做层分开。
 
-Let's create a new interface, `Blog\Model\PostCommandInterface`, in
-`module/Blog/src/Model/PostCommandInterface.php`, and have it read as follows:
+接下来我们在 `module/Blog/src/Model/PostCommandInterface.php`
+中创建一个新的接口 `Blog\Model\PostCommandInterface` 内容如下：
 
 ```php
 namespace Blog\Model;
@@ -79,7 +64,7 @@ namespace Blog\Model;
 interface PostCommandInterface
 {
     /**
-     * Persist a new post in the system.
+     * 在系统中保存一个新的帖子.
      *
      * @param Post $post The post to insert; may or may not have an identifier.
      * @return Post The inserted post, with identifier.
@@ -87,7 +72,7 @@ interface PostCommandInterface
     public function insertPost(Post $post);
 
     /**
-     * Update an existing post in the system.
+     * 更新一个系统中存在的帖子.
      *
      * @param Post $post The post to update; must have an identifier.
      * @return Post The updated post.
@@ -95,7 +80,7 @@ interface PostCommandInterface
     public function updatePost(Post $post);
 
     /**
-     * Delete a post from the system.
+     * 从系统中删除一个帖子.
      *
      * @param Post $post The post to delete.
      * @return bool
@@ -104,18 +89,13 @@ interface PostCommandInterface
 }
 ```
 
-This new interface defines methods for each *command* within our model. Each
-expects a `Post` instance, and it is up to the implementation to determine how
-to use that instance to issue the command. In the case of an insert operation,
-our `Post` does not require an identifier (which is why the value is nullable in
-the constructor), but will return a new instance that is guaranteed to have one.
-Similarly, the update operation will return the updated post (which may be the
-same instance!), and a delete operation will indicate if the operation was
-successful.
+这个接口为我们在模型中为每个 *command* 都定义了方法。
+每个方法都接收一个 `Post` 实例，并由其发出命令来对实例进行何种操作。
+对于插入操作，我们的 `Post` 不需要一个 ID（在构造函数中这个值会被定义为 null），
+但是我们会返回一个具有 ID 的新实例，同样的更新操作也将会返回一个更新后的实例
+（也可能是同一个实例！），删除操作会返回操作是否成功的标记。
 
-## Conclusion
+## 总结
 
-We're not quite ready to use the new interface; we're using it to set the stage
-for the next few chapters, where we look at using laminas-db to implement our
-persistence, and later creating new controllers to handle blog post
-manipulation.
+这里我们不准备使用新的接口；在接下来的几个章节中我们会对其做阶段性的设置，
+我们将准备使用 zend-db 来实现持久化，并在后面创建一个的新的控制器来处理博客帖子的操作。
