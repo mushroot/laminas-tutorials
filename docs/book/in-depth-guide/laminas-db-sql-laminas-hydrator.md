@@ -1,18 +1,16 @@
-# SQL Abstraction and Object Hydration
+# SQL 抽象和对象 Hydration
 
-In the last chapter, we introduced database abstraction and a new command
-interface for operations that might change what blog posts we store. We'll now
-start creating database-backed versions of the `PostRepositoryInterface` and
-`PostCommandInterface`, demonstrating usage of the various `Laminas\Db\Sql`
-classes.
+在上一个章节中，我们介绍了数据库的抽象并且为我们存储帖子的操作添加了一个新的接口。
+我们现在开始创建支持数据库操作的 `PostRepositoryInterface` 和 `PostCommandInterface`
+示例中我们将使用 `Laminas\Db\Sql` 类。
 
-## Preparing the Database
+## 准备数据库
 
-This tutorial assumes you've followed the [Getting Started](../getting-started/overview.md)
-tutorial, and that you've already populated the `data/laminastutorial.db` SQLite
-database. We will be re-using it, and adding another table to it.
+这个教程默认你已经看过 [快速开始](../getting-started/overview.md) 部分的教程了，
+并且你已经向 `data/zftutorial.db` 这个 SQLite 数据库中填充了数据，
+我们将会继续使用它，并添加一些其他的表。
 
-Create the file `data/posts.schema.sql` with the following contents:
+创建 `data/posts.schema.sql` 文件内容如下：
 
 ```sql
 CREATE TABLE posts (id INTEGER PRIMARY KEY AUTOINCREMENT, title varchar(100) NOT NULL, text TEXT NOT NULL);
@@ -24,15 +22,15 @@ INSERT INTO posts (title, text) VALUES ('Blog #4', 'Welcome to my fourth blog po
 INSERT INTO posts (title, text) VALUES ('Blog #5', 'Welcome to my fifth blog post');
 ```
 
-Now we will execute this against the existing `data/laminastutorial.db` SQLite
-database using the `sqlite` command (or `sqlite3`; check your operating system):
+我们再次执行 `sqlite` 命令（或 `sqlite3`，以你系统版本为准）
+向  `data/zftutorial.db` 这个 SQLite 数据库中导入数据：
 
 ```bash
-$ sqlite data/laminastutorial.db < data/posts.schema.sql
+$ sqlite data/zftutorial.db < data/posts.schema.sql
 ```
 
-If you don't have a `sqlite` command, you can populate it using PHP. Create the
-following script in `data/load_posts.php`:
+如果你没有 `sqlite` 命令，你同样可以使用PHP。创建如下内容的脚本文件 `data/load_posts.php`：
+
 
 ```php
 <?php
@@ -45,38 +43,35 @@ while ($line = fread($fh, 4096)) {
 fclose($fh);
 ```
 
-and execute it using:
+并执行:
 
 ```bash
 $ php data/load_posts.php
 ```
 
-## Quick Facts Laminas\\Db\\Sql
+## 快速预览 Laminas\\Db\\Sql
 
-To create queries against a database using `Laminas\Db\Sql`, you need to have a
-database adapter available. The "Getting Started" tutorial
-[covered this in the database chapter](../getting-started/database-and-models.md#using-servicemanager-to-configure-the-table-gateway-and-inject-into-the-albumtable),
-and we can re-use that adapter.
+使用 `Laminas\Db\Sql` 来创建数据库查询，你需要一个可用的数据库支配器。
+我们可以重用在快速入门教程中 [covered this in the database chapter](../getting-started/database-and-models.md#using-servicemanager-to-configure-the-table-gateway-and-inject-into-the-albumtable),
+配置的适配器。
 
-With the adapter in place and the new table populated, we can run queries
-against the database. The construction of queries is best done through the
-"QueryBuilder" features of `Laminas\Db\Sql` which are `Laminas\Db\Sql\Sql` for select
-queries, `Laminas\Db\Sql\Insert` for insert queries, `Laminas\Db\Sql\Update` for
-update queries and `Laminas\Db\Sql\Delete` for delete queries. The basic workflow
-of these components is:
+有了适配器并填充了新的表后，我们就可以运行数据库查询了。
+构建查询最好是通过 `Laminas\Db\Sql` 的 "QueryBuilder" 来进行，
+比如 `Laminas\Db\Sql\Sql` 用来查询， `Laminas\Db\Sql\Insert` 用来插入，
+`Laminas\Db\Sql\Update` 用来更新，`Laminas\Db\Sql\Delete` 用来删除。
+这些组件的基本工作就是：
 
-1. Build a query using the relevant class: `Sql`, `Insert`, `Update`, or
-   `Delete`.
-2. Create a SQL statement from the `Sql` object.
-3. Execute the query.
-4. Do something with the result.
+1. 使用相关的类 `Sql`, `Insert`, `Update` 或者 `Delete` 来构建查询。
+2. 通过 `Sql` 来构建 SQL 语句。
+3. 执行这个查询。
+4. 对结果进行处理
 
-Let's start writing database-driven implementations of our interfaces now.
+让我们现在开始为接口编写数据库驱动的实现。
 
-## Writing the repository implementation
+## 编写库（repository）的实现
 
-Create a class named `LaminasDbSqlRepository` in the `Blog\Model` namespace that
-implements `PostRepositoryInterface`; leave the methods empty for now:
+在 `Blog\Model` 命名空间下创建一个继承自 `PostRepositoryInterface` 的名为
+`ZendDbSqlRepository` 的类；目前保持所有方法都为空：
 
 ```php
 // In module/Blog/src/Model/LaminasDbSqlRepository.php:
@@ -105,11 +100,9 @@ class LaminasDbSqlRepository implements PostRepositoryInterface
 }
 ```
 
-Now recall what we have learned earlier: for `Laminas\Db\Sql` to function, we will
-need a working implementation of the `AdapterInterface`. This is a
-*requirement*, and therefore will be injected using *constructor injection*.
-Create a `__construct()` method that accepts an `AdapterInterface` as its sole
-parameter, and stores it as an instance property:
+现在我们回到之前学的知识：为了使用 `Laminas\Db\Sql` 函数，我们需要实现 `AdapterInterface`。
+这是一个*必要条件*，在这之前我们将使用*构造注入*。创建接收 `AdapterInterface`
+作为参数的 `__construct()` 方法，并且将其存为一个实例属性：
 
 ```php
 // In module/Blog/src/Model/LaminasDbSqlRepository.php:
@@ -152,8 +145,8 @@ class LaminasDbSqlRepository implements PostRepositoryInterface
 }
 ```
 
-Whenever we have a required parameter, we need to write a factory for the class.
-Go ahead and create a factory for our new repository implementation:
+我们现在有了一个必须的参数，我们需要编写一个我们自己的工厂方法。
+为我们新库的实现编写一个工厂方法：
 
 ```php
 // In module/Blog/src/Factory/LaminasDbSqlRepositoryFactory.php
@@ -179,14 +172,12 @@ class LaminasDbSqlRepositoryFactory implements FactoryInterface
 }
 ```
 
-We're now able to register our repository implementation as a service. To do so,
-we'll make two changes:
+我们现在可以将我们的库的实现作为一个服务来注入了。为了实现这个需求，我们需要做两个修改：
 
-- Register a factory entry for the new repository.
-- Update the existing alias for `PostRepositoryInterface` to point to the new
-  repository.
+- 为我们新的库注册一个工厂实例。
+- 更新存在的别名 `PostRepositoryInterface` 指向新的库。
 
-Update `module/Blog/config/module.config.php` as follows:
+更新 `module/Blog/config/module.config.php` 内容如下：
 
 ```php
 return [
@@ -207,17 +198,16 @@ return [
 ];
 ```
 
-With the adapter in place you're now able to refresh the blog index at
-`localhost:8080/blog` and you'll notice that the `ServiceNotFoundException` is
-gone and we get the following PHP Warning:
+
+更新适配器后我们就可以刷新我们的博客页面 `localhost:8080/blog`
+你将会看见抛出一个 `ServiceNotFoundException` 异常，并伴有如下错误信息
 
 ```text
 Warning: Invalid argument supplied for foreach() in {projectPath}/module/Blog/view/blog/list/index.phtml on line {lineNumber}
 ```
 
-This is due to the fact that our mapper doesn't return anything yet. Let's
-modify the `findAllPosts()` function to return all blog posts from the database
-table:
+实际上是我们的映射库没有返回任何信息。让我们修改 `findAllPosts()`
+函数从数据表中返回所有的博客帖子：
 
 ```php
 // In /module/Blog/src/Model/LaminasDbSqlRepository.php:
@@ -266,14 +256,14 @@ class LaminasDbSqlRepository implements PostRepositoryInterface
 }
 ```
 
-Sadly, though, a refresh of the application reveals another error message:
+不幸的是，当我们再次刷新应用的时候又会看见如下错误信息：
 
 ```text
 PHP Fatal error:  Call to a member function getId() on array in {projectPath}/module/Blog/view/blog/list/index.phtml on line {lineNumber}
 ```
 
-Let's not return the `$result` variable for now and do a dump of it to see what
-we get here. Change the `findAllPosts()` method and dump the result:
+让我们在返回 `$result` 变量之前打印出来看看获取的是何种结果。
+修改 `findAllPosts()` 方法来打印结果：
 
 ```php
 public function findAllPosts()
@@ -290,7 +280,7 @@ public function findAllPosts()
 }
 ```
 
-Refreshing the application you should now see output similar to the following:
+刷新应用，你将会看见如下的简短输出：
 
 ```text
 Laminas\Db\Adapter\Driver\Pdo\Result::__set_state(array(
@@ -308,14 +298,11 @@ Laminas\Db\Adapter\Driver\Pdo\Result::__set_state(array(
 ))
 ```
 
-As you can see, we do not get any data returned. Instead we are presented with a
-dump of some `Result` object that appears to have no data in it whatsoever. But
-this is a faulty assumption. This `Result` object only has information available
-for you when you actually try to access it. If you can determine that the query
-was successful, the best way to make use of the data within the `Result` object
-is to pass it to a `ResultSet` object.
+正如你看见的那样，我们不直接返回任何的数据。而是会提供一个似乎是没有任何数据的 `Result` 对象。
+但这只是表面现象。这个 `Result` 对象会在你访问的时候返回数据。
+如果你确定查询结果是正确的，最好的方法就是通过 `ResultSet` 对象来使用 `Result` 对象中的数据。
 
-First, add two more import statements to the class file:
+首先，我们在类文件中添加两个引入：
 
 ```php
 use Laminas\Db\Adapter\Driver\ResultInterface;
@@ -343,7 +330,7 @@ public function findAllPosts()
 }
 ```
 
-Refreshing the page, you should now see the dump of a `ResultSet` instance:
+刷新页面，你将会看见如下的一个 `ResultSet` 输出信息：
 
 ```text
 Laminas\Db\ResultSet\ResultSet::__set_state(array(
@@ -380,29 +367,26 @@ Laminas\Db\ResultSet\ResultSet::__set_state(array(
 ))
 ```
 
-Of particular interest is the `returnType` property, which has a value of
-`arrayobject`.  This tells us that all database entries will be returned as an
-`ArrayObject` instances. And this is a little problem for us, as the
-`PostRepositoryInterface` requires us to return an array of `Post` instances.
-Luckily the `Laminas\Db\ResultSet` subcomponent offers a solution for us, via the
-`HydratingResultSet`; this result set type will populate an object of a type we
-specify with the data returned.
+我们比较关注的是 `returnType` 属性，它的值为 `arrayobject`。
+这表明所有的数据库实例都将返回一个 `ArrayObject` 实例。
+但是对于我们来说这里有个小问题，我们的 `PostRepositoryInterface`  需要我们返回的是一个
+`Post` 实例组成的数组。幸运的是 `Laminas\Db\ResultSet` 的子组件 `HydratingResultSet`
+完美的为我们解决了这个问题；这个结果集将会使用返回的数据来填充我们指定的对象。
 
-Let's modify our code. First, remove the following import statement from the
-class file:
+让我们来修改代码。首先，从类文件中删除如下的引入信息：
 
 ```php
 use Laminas\Db\ResultSet\ResultSet;
 ```
 
-Next, we'll add the following import statements to our class file:
+接下来，我们将在类文件中添加如下的引入信息：
 
 ```php
 use Laminas\Hydrator\Reflection as ReflectionHydrator;
 use Laminas\Db\ResultSet\HydratingResultSet;
 ```
 
-Now, update the `findAllPosts()` method to read as follows:
+现在，按照如下方式更新 `findAllPosts()` 方法：
 
 ```php
 public function findAllPosts()
@@ -425,29 +409,23 @@ public function findAllPosts()
 }
 ```
 
-We have changed a couple of things here. First, instead of a normal `ResultSet`,
-we are now using the `HydratingResultSet`. This specialized result set requires two parameters, the
-second one being an object to hydrate with data, and the first one being the
-`hydrator` that will be used (a `hydrator` is an object that will transform an
-array of data into an object, and vice versa). We use `Laminas\Hydrator\Reflection`
-here, which is capable of injecting private properties of an instance. We
-provide an empty `Post` instance, which the hydrator will clone to create new
-instances with data from individual rows.
+这类我们做了一些修改，首先，使用 `HydratingResultSet` 代替了常规的 `ResultSet`。
+这个特殊的结果集需要两个参数，第二个参数是我们需要用数据来填充的对象，
+第一个参数为一个 `hydrator`（`hydrator`  是一个用来将数据填充到对象中的对象，反之亦然）。
+我们这里使用 `Laminas\Hydrator\Reflection` 它能够注入一个实例的私有属性。
+我们提供了一个空的 `Post` 实例，hydrator 将会对其 clone 并按照数据行建立新的实例。
 
-Instead of dumping the `$result` variable, we now directly return the
-initialized `HydratingResultSet` so we can access the data stored within. In
-case we get something else returned that is not an instance of a
-`ResultInterface`, we return an empty array.
+替换了打印出的 `$result` 变量，我们直接返回了 初始化的 `HydratingResultSet`
+便于我们可以通过其返回储存的数据。对于返回的非 `ResultInterface` 的实例，
+我们将返回一个空的数组。
 
-Refreshing the page you will now see all your blog posts listed on the page. Great!
+刷新你的页面，你将会在页面上看见所有的帖子列表。 Great!
 
-## Refactoring hidden dependencies
+## 对隐性依赖进行重构
 
-There's one little thing that we have done that's not a best-practice. We use
-both a hydrator and a `Post` prototype inside our `LaminasDbSqlRepository`. Let's
-inject those instead, so that we can reuse them between our repository and
-command implementations, or vary them based on environment. Update your
-`LaminasDbSqlRepository` as follows:
+这里还有一些小的地方我们做的不是那么的标准。我们在 `ZendDbSqlRepository`
+中直接使用了 hydrator 和 `Post` 属性。我们将修改这个注入信息，
+以便我们能在库及实现中或者在基于其的环境下。更新 `ZendDbSqlRepository` 如下：
 
 ```php
 // In module/Blog/src/Model/LaminasDbSqlRepository.php:
@@ -524,8 +502,7 @@ class LaminasDbSqlRepository implements PostRepositoryInterface
 }
 ```
 
-Now that our repository requires more parameters, we need to update the
-`LaminasDbSqlRepositoryFactory` and inject those parameters:
+现在我们的库又拥有了几个参数，需要更新 `ZendDbSqlRepositoryFactory` 来注入这些参数：
 
 ```php
 // In /module/Blog/src/Factory/LaminasDbSqlRepositoryFactory.php
@@ -551,14 +528,12 @@ class LaminasDbSqlRepositoryFactory implements FactoryInterface
 }
 ```
 
-With this in place you can refresh the application again and you'll see your
-blog posts listed once again. Our repository no longer has hidden dependencies,
-and works with a database!
+做完这些修改后，你可以再次刷新你的应用你将会再次看见你的帖子列表信息。
+我们的库也不会再有隐藏的依赖了，并且能和数据库正常工作了！
 
-## Finishing the repository
+## 最后整理库
 
-Before we jump into the next chapter, let's quickly finish the repository
-implementation by completing the `findPost()` method:
+在进入下一个章节前，让我们快速的完善 `findPost()` 方法库的实现：
 
 ```php
 public function findPost($id)
@@ -592,24 +567,18 @@ public function findPost($id)
 }
 ```
 
-The `findPost()` function looks similar to the `findAllPosts()` method, with
-several differences.
 
-- We need to add a condition to the query to select only the row matching the
-  provided identifier; this is done using the `where()` method of the `Sql`
-  object.
-- We check if the `$result` is valid, using `isQueryResult()`; if not, an error
-  occurred during the query that we report via a `RuntimeException`.
-- We pull the `current()` item off the result set we create, and test to make
-  sure we received something; if not, we had an invalid identifier, and raise an
-  `InvalidArgumentException`.
+`findPost()` 函数看起来比 `findAllPosts()` 方法简单，且又下面几个不同。
 
-## Conclusion
+- 我们需要添加一个条件查询来根据给出的 ID 获取指定行的数据；这里我们使用 `Sql` 对象的 `where()` 方法。
+- 我们使用 `isQueryResult()` 来验证 `$result`；如果验证失败，
+  将抛出一个 `RuntimeException` 异常。
+- 我们通过 `current()` 获取我们创建的结果，并确保能获取到数据，如若无，将抛出 `InvalidArgumentException` 异常。
 
-Finishing this chapter, you now know how to *query* for data using the
-`Laminas\Db\Sql` classes. You have also learned a little about the laminas-hydrator
-component, and the integration laminas-db provides with it.  Furthermore, we've
-continued demonstrating dependency injection in all aspects of our application.
+## 总结
 
-In the next chapter we'll take a closer look at the router so we'll be able to
-start displaying individual blog posts.
+本章完结，你现在已经知道了如何使用 `Laminas\Db\Sql` 来*查询*数据，
+同时你也学习到了 zend-hydrator 组件的部分知识，并与 zend-db 集成。
+此外我们继续展示了我们应用各个部分的依赖注入情况。
+
+下一个章节我们将完善路由，以便我们能够显示指定 ID 的帖子。
