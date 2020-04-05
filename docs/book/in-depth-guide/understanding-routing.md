@@ -1,30 +1,27 @@
-# Understanding the Router
+# 了解路由
 
-Our module is coming along nicely. However, we're not really doing all that much
-yet; to be precise, all we do is display *all* blog entries on one page. In this
-chapter, you will learn everything you need to know about the `Router` in order
-to route to controllers and actions for displaying a single blog post, adding a
-new blog post, editing an existing post, and deleting a post.
+我们的模块顺利进行的同时，我们并不能做到完全的比配；
+确切的说，我们总是在整个页面上展示 *整个* 博客。
+本章节中，你将会学习到关于 `Router` 的所有用法，
+以便我们能够导航到控制器以及方法中，用来展示一个独立的模块，
+添加一个新的帖子，编辑一个存在的帖子，删除一个帖子这些功能。
 
-## Different route types
+## 不通的路由类型
 
-Before we go into details on our application, let's take a look at the most
-often used route types.
+在详细介绍我们的应用之前，让我们了解几个常用的路由类型。
 
-### Literal routes
+### Literal 路由
 
-As mentioned in a previous chapter, a literal route is one that exactly matches
-a specific string. Examples of URLs that can utilize literal routes include:
+如之前章节展示的那样， 一个 literal 路由表示匹配与指定字符串完全匹配的路径。
+下面是一些使用 literal 路由的示例：
 
 - `http://domain.com/blog`
 - `http://domain.com/blog/add`
 - `http://domain.com/about-me`
 - `http://domain.com/my/very/deep/page`
 
-Configuration for a literal route requires you to provide the path to match, and
-the "defaults" to return on a match. The "defaults" are then returned as route
-match parameters; one use case for these is to specify the controller to invoke
-and the action method on that controller to use. As an example:
+配置一个 literal 路由需要提供一个匹配的路径以及一个 "defaults" 属性用来返回匹配参数；
+一般是用来指定控制器以及其操作方法。如下：
 
 ```php
 'router' => [
@@ -43,11 +40,10 @@ and the action method on that controller to use. As an example:
 ],
 ```
 
-### Segment routes
+### Segment 路由
 
-Segment routes allow you to define routes with variable parameters; a common use
-case is for specifying an identifier in the path.  Examples of URLs that might
-require segment routes include:
+Segment 允许你使用变量参数来定义路由；通常哟弄过来在路径中指定ID。
+segment 路由的示例 URLs 如下所示：
 
 - `http://domain.com/blog/1` (parameter "1" is dynamic)
 - `http://domain.com/blog/details/1` (parameter "1" is dynamic)
@@ -57,25 +53,20 @@ require segment routes include:
 - `http://domain.com/news/archive/2014/january` (parameter "2014" and "january"
    are dynamic)
 
-Configuring a segment route is similar to that of a literal route.
-The primary differences are:
+配置一个 segment 路由与 literal 类似。
+不同点在于：
 
-- The route will have one or more `:<varname>` segments, indicating items that
-  will be dynamically filled. `<varname>` should be a string, and will be used
-  to identify the variable to return when routing is successful.
-- The route *may* also contain *optional* segments, which are items surrounded
-  by square braces (`[]`), and which can contain any mix of literal and variable
-  segments internally.
-- The "defaults" can include the names of variable segments; in case that
-  segment is missing, the default will be used. (They can also be completely
-  independent; for instance, the "controller" rarely should be included as a
-  segment!).
-- You may also specify "constraints" for each variable segment; each constraint
-  will be a regular expression that must pass for matching to be successful.
+- 路由可能会有一个或者多个 `:<变量>` 段，用于匹配变量。
+  `:<变量>` 应为一个字符串，并且需要作为在路由分配成功的时候引用变量的标识。
+- 路由同样 *可能* 包含 *可选* 的部分，并使用大括号 (`[]`) 将其包含在其中，
+  且可以在其中使用字符以及可选的部分。
+- "defaults" 中可以包含可变部分的名称；一遍在没有传递参数的时候使用默认的参数。
+  (定义的时候应该也保持独立，例如，"controller" 通常就不建议包含在可选部分中。)
+- 同时你可以在 "constraints" 中对每个变量进行约束；
+  每个约束条件就是一个正则表达式，并且会在路由匹配成功的时候触发。
 
-As an example, let's consider a route where we want to specify a variable "year"
-segment, and indicate that the segment must contain exactly four digits; when
-matched, we should use the `ArchiveController` and its `byYear` action:
+举个例子，我们需要一个路由指定 "year" 部分为变量，并且限制其必须为4个数字；
+当匹配的时候，我们将使用 `ArchiveController` 的 `byYear` 操作：
 
 ```php
 'router' => [
@@ -98,40 +89,36 @@ matched, we should use the `ArchiveController` and its `byYear` action:
 ],
 ```
 
-This configuration defines a route for a URL such as
-`//example.com/news/archive/2014`. The route contains the variable segment
-`:year`, which has a regex constraint defined as `\d{4}`, indicating it will
-match if and only if it is exactly four digits. As such, the URL
-`//example.com/news/archive/123` will fail to match, but
-`//example.com/news/archive/1234` will.
+当前配置定义了一个可以匹配类似 `//example.com/news/archive/2014` 的路由。
+路由指定了变量段 `:year`，并定义了其约束条件为  `\d{4}`，
+表示其只有当其为 4 个数字的时候才会匹配。
+例如：`//example.com/news/archive/123` 将不能匹配，
+但是 `//example.com/news/archive/1234` 就可以。
 
-The definition marks an optional segment, denoted by `[/:year]`. This has a
-couple of implications. First, it means that we can also match:
+该定义标记了一个用 `[/:year]` 表示的可选部分。这有两种含义。
+首先意味着它可以匹配如下的URL：
 
 - `//example.com/news/archive`
 - `//example.com/news/archive/`
 
-In both cases, we'll also still receive a value for the `:year` segment, because
-we defined a default for it: the expression `date('Y')` (returning the current
-year).
+这两种情况下，我们同样可以获取可选部分 `:year` 的值，
+因为我们为其定义了一个默认的参数 `date('Y')` （返回当前的年份）。
 
-Segment routes allow you to dynamically match paths, and provide extensive
-capabilities for how you shape those paths, matching variable segments, and
-providing constraints for them.
+Segment 路由允许你动态的匹配路径，并且提供了多种方式来定义这些路由，
+定义默认值，以及提供约束条件。
 
-## Different routing concepts
+## 不同路由的概念
 
-When thinking about an entire application, you'll quickly realize that you may
-have many, many routes to define.
-When writing these routes you have two options:
+当我们规划整个应用的时候，你可能会有很多的路由需要去定义。
+编写这些路由的时候我们有两种选择：
 
-- Spend less time writing routes that in turn are a little slow in matching.
-- Write very explicit routes that match faster, but require more work to define.
+- 花更少的时间来编写通用的路由，但是这样可能会导致匹配的速度变慢。
+- 编写一个非常明确的路由，这样可以使其有更快的匹配速度，但是可能会在定义路由上花费大量的时间。
 
-### Generic routes
+### 通用路由
 
-A generic route is greedy, and will match as many URLs as possible.
-A common approach is to write a route that matches the controller and action:
+通用路由是非常贪婪的，他会常识去匹配尽可能多的 URLs。
+一种常用的方法是编写自动匹配控制器和操作的路由：
 
 ```php
 'router' => [
@@ -154,46 +141,37 @@ A common approach is to write a route that matches the controller and action:
 ],
 ```
 
-Let's take a closer look as to what has been defined in this configuration. The
-`route` part now contains two optional parameters, `controller` and `action`.
-The `action` parameter is optional only when the `controller` parameter is
-present. Both have constraints that ensure they only allow strings that would be
-valid PHP class and method names.
+来我们来详细的了解下此配置中定义的内容。
+`route` 部分定义了两个可选的部分，`controller` 和 `action`.
+`action` 部分只有在在  `controller` 部分匹配的情况才才会生效。
+两部分都设置了约束条件以确保其允许满足 PHP 规范的类和方法名。
 
-The big advantage of this approach is the immense time you save when developing
-your application; one route, and then all you need to do is create controllers,
-add action methods to them, and they are immediately available.
+这种方式最大的优点就在于在开发的时候可以节省大量的时间；
+只需要一个路由你就可以直接开始创建控制器并且向其中添加方法。
 
-The downsides are in the details.
+其缺点就在于。
 
-In order for this to work, you will need to use aliases when defining your
-controllers, so that you can alias shorter names that omit namespaces to the
-fully qualified controller class names; this sets up the potential for
-collisions between different application modules which might define the same
-controller class names.
+为了确保其可以运作，你需要在你定义控制器的时候使用别名，
+这些简短的别名将命名空间省略为符合规范的控制器名称；
+这样做的话就可能因为在不同模块中定义了相同的别名而引发冲突。
 
-Second, matching nested optional segments, each with regular expression
-constraints, adds performance overhead to routing.
+其次，使用嵌套的匹配方式可能会引起不必要的性能开销。
 
-Third, such a route does not match any additional segments, constraining your
-controllers to omit dynamic route segments and instead rely on query string
-arguments for route parameters &mdash; which in turn leaves parameter validation
-to your controllers.
+再次，此类路由不会其他的附加参数，从而导致了控制器会忽略动态路由部分。
+而是需要通过查询字段来获取参数 &mdash; 也就是说参数的验证就留给了控制器。
 
-Finally, there is no guarantee that a valid match will result in a valid
-controller and action. As an example, if somebody requested
-`//example.com/strange/nonExistent`, and no controller maps to `strange`, or the
-controller has no `nonExistentAction()` method, the application will use more
-cycles to discover and report the error condition than it would if routing had
-simply failed to match. This is both a performance and a security consideration,
-as an attacker could use this fact to launch a Denial of Service.
+最后，不能保证有效的匹配到理想的控制器和操作。
+例如，一个请求为 `//example.com/strange/nonExistent`，
+但是没有指向 `strange` 的控制器，或 `nonExistentAction()` 方法，
+应用将会耗费更多的时间和资源来判断是否出错。
+这既是性能上的考虑，也是处于安全方面的考虑，因为攻击者可能会利用这种情况来实施攻击。
 
-### Basic routing
+### 基本路由
 
-By now, you should be convinced that generic routes, while nice for prototyping,
-should likely be avoided. That means defining explicit routes.
+现在，你应该就能明白尽量避免使用通用的路由了，尽管其很方便。
+这就意味着你需要定义明确的路由。
 
-Your initial approach might be to create one route for every permutation:
+最好的方法是为每一种情况定义一个路由：
 
 ```php
 'router' => [
@@ -238,38 +216,31 @@ Your initial approach might be to create one route for every permutation:
 ],
 ```
 
-Routing is done as a stack, meaning last in, first out (LIFO). The trick is to
-define your most general routes first, and your most specific routes last. In
-the example above, our most general route is a literal match against the path
-`/news`. We then have two additional routes that are more specific, one matching
-`/news/archive` (with an optional segment for the year), and another one
-matching `/news/:id`. These exhibit a fair bit of repetition:
+路由是作为一个堆栈存储的，也就意味着其先进后出（LIFO）.
+那么我们建议你首先定义最普通的路由，然后再定义特定的路由。
+在上面的例子中，我们最普通的路由指向路径 `/news`。
+然后我们添加了两个特定的路由，一个匹配 `/news/archive`（附带一个参数 year）
+另一个匹配 `/news/:id`。这些路由具有一些重复的部分：
 
-- In order to prevent naming collisions between routes, each route name is
-  prefixed with `news-`.
-- Each routing string contains `/news`.
-- Each defines the same default controller.
+- 为了防止名称间的冲突，我们对每个路由都使用前缀 `news-`。
+- 每个路由都包含字符串 `/news`。
+- 每个路由都有相同的控制器。
 
-Clearly, this can get tedious. Additionally, if you have many routes with
-repitition such as this, you need to pay special attention to the stack and
-possible route overlaps, as well as performance (if the stack becomes large).
+很明显，这样就显得比较乏味。另外，如果你具有多个这样重复的路由，
+就需要特别注意堆栈，可能会出现路由器的重叠，同时还可能会影响性能（如果堆栈变大的话）。
 
-### Child routes
+### 子路由
 
-To solve the problems detailed in the last section, laminas-router allows defining
-"child routes". Child routes inherit all `options` from their respective
-parents; this means that if an option, such as the controller default, doesn't change, you do not need to
-redefine it.
+为了解决上面出现的问题，laminas-router 允许定义“子路由”。
+子路由继承了各自父路由的所有 `options`；
+这就意味着如果存在和父路由相同的配置，那么就不需要重复去定义了。
 
-Additionally, child routes match *relative* to the parent route. This provides
-several optimizations:
+另外，子路由需要 *相对* 匹配父路由。者也提供了一些优化：
 
-- You do not need to duplicate common path segments.
-- Routing will ignore the child routes *unless the parent matches*, which can
-  provide enormous performance benefits during routing.
+- 你不用重复定义公共路径部分。
+- *除非父路由匹配*，否则将会直接忽略子路由，这可以在路由匹配过程中提供巨大的优势。
 
-Let's take a look at a child routes configuration using the same example as
-above:
+让我们看下和上面一样的效果，但是使用了子路由的配置：
 
 ```php
 'router' => [
@@ -321,51 +292,42 @@ above:
 ],
 ```
 
-At its most basic, we define a parent route as normal, and then add an
-additional key, `child_routes`, which is normal routing configuration for
-additional routes to match if the parent route matches.
+最基本的操作是，我们和之前一样定义一个父路由，然后添加属性 `child_routes`，
+这是基本的路由配置，用于在在父路由匹配时再去匹配其他路由。
 
-The `may_terminate` configuration key is used to determine if the parent route
-is allowed to match on its own; in other words, if no child routes match, is the
-parent route a valid route match? The flag is `false` by default; setting it to
-`true` allows the parent to match on its own.
+`may_terminate` 配置用于确定是否允许父路由自行匹配；
+换句话说，如果没有子路由满足条件，那么是否父路由就为有效的匹配路由？
+其默认值为 `false`，将其修改为 `true` 即可允许父路由自行匹配。
 
-The `child_routes` themselves look like standard routing at the top-level, and
-follow the same rules; they themselves can have child routes, too! The thing to
-remember is that any routing strings defined *are relative to the parent*. As
-such, the above definition allows matching any of the following:
+`child_routes` 就其本身来说也是一个标准的路由；同样的其可以拥有自己的子路由！
+需要注意的是，任何路由的字符串都是相对于其父路由的。
+因此，以上的路由可以匹配下面的任一一种路由：
 
 - `/news`
 - `/news/archive`
 - `/news/archive/2014`
 - `/news/42`
 
-(If `may_terminate` was set to `false`, the first path above, `/news`, *would not
-match*.)
+（如果将 `may_terminate` 设置了为 `false`，第一个路径 `/news` 将不会匹配）
 
-You'll note that the child routes defined above do not specify a `controller`
-default. Child routes *inherit options* from the parent, however, which means
-that, effectively, each of these will use the same controller as the parent!
+你可能会注意到，上面所有的子路由都未指定默认 `controller`。
+子路由从父路由 *继承* 了参数，这就意味着所有的路由都与父路由使用相同的控制器！
 
-The advantages to using child routes include:
+使用子路由的优势包括：
 
-- Explicit routes mean fewer error conditions with regards to matching
-  controllers and action methods.
-- Performance; the router ignores child routes unless the parent matches.
-- De-duplication; the parent route contains the common path prefix and common
-  options.
-- Organization; you can see at a glance all route definitions that start with a
-  common path segment.
+- 明确的路由意味着在与控制器与方法的匹配中产生的错误情况更少。
+- 性能；除非父路由匹配，否则子路由将会被直接忽略。
+- 删除重复数据；父路由就包括了公共的前缀和选项。
+- 组织；你可以一目了然的看见所有以公共路径开头的路由定义。
 
-The primary disadvantage is the verbosity of configuration.
+主要缺点就在于配置的复杂性。
 
-## A practical example for our blog module
+## 以我们的模块为实例的例子
 
-Now that we know how to configure routes, let's first create a route to display
-only a single blog entry based on internal identifier.  Given that ID is a
-variable parameter, we need a segment route. Furthermore, we know that the route
-will also match against the same `/blog` path prefix, so we can define it as a
-child route of our existing route. Let's update our configuration:
+现在我们知晓了如何去配置路由，我们首先来创建一个仅用于显示单条博文的路由。
+其 ID 为可变参数，我们需要构建一个 segment 路由。
+此外，我们知道该路由需要使用相同的路径前缀 `/blog`，
+所以我们将其视为现路由的子路由。更新配置如下：
 
 ```php
 // In module/Blog/config/module.config.php:
@@ -411,13 +373,11 @@ return [
 ];
 ```
 
-With this we have set up a new route that we use to display a single blog entry.
-The route defines a parameter, `id`, which needs to be a sequence of 1 or more
-positive digits, not beginning with 0.
+这样我们就创建了一个用于显示单条博文的路由。并定义了一个参数 `id`,
+并限制其为一个或者读个整数，且不能为0.
 
-The route will call the same `controller` as the parent route, but using
-the `detailAction()` method instead. Go to your browser and request the URL
-`http://localhost:8080/blog/2`; you'll see the following error message:
+这些路由使用与父路由相同的 `controller`，但是使用了 `detailAction()` 方法。
+进去浏览器输入链接：`http://localhost:8080/blog/2`，你将会看见如下错误：
 
 ```text
 A 404 error occurred
@@ -432,10 +392,8 @@ Blog\Controller\ListController
 No Exception available
 ```
 
-This is due to the fact that the controller tries to access the
-`detailAction()`, which does not yet exist. We'll create this action now; go to
-your `ListController` and add the following action, which will return an empty
-view model
+那是因为控制器中的 `detailAction()` 方法不存在。
+我们需要在 `ListController` 中按照如下方式添加这个方法，其会返回一个空的视图
 
 ```php
 // In module/Blog/src/Controller/ListController.php:
@@ -453,12 +411,10 @@ class ListController extends AbstractActionController
 }
 ```
 
-Refresh your browser, which should result in the familiar message that a template
-was unable to be rendered.
+刷新浏览器，你将会看见一个熟悉的消息界面，即无法呈现视图模板。
 
-Let's create this template now and assume that we will get a `Post` instance
-passed to the template to see the details of our blog. Create a new view file
-under `module/Blog/view/blog/list/detail.phtml`:
+我们现在来创建这个模板并注入 `Post` 实例用于显示博客内容，
+创建一个内容如下的文件 `module/Blog/view/blog/list/detail.phtml`:
 
 ```php
 <h1>Post Details</h1>
@@ -472,8 +428,8 @@ under `module/Blog/view/blog/list/detail.phtml`:
 </dl>
 ```
 
-The above template is expecting a `$post` variable referencing a `Post` instance
-in the view model. We'll now update the `ListController` to provide that:
+上面的模板接收 `$post` 变量在视图中作为 `Post` 的实例。
+并更新 `ListController` 内容如下：
 
 ```php
 public function detailAction()
@@ -486,13 +442,10 @@ public function detailAction()
 }
 ```
 
-If you refresh your application now, you'll see the details for our `Post` are
-displayed. However, there is one problem with what we have done: while we
-have our repository set up to throw an `InvalidArgumentException` when no post
-is found matching a given identifier, we do not check for it in our controller.
+现在刷新浏览器，理论上将会看见我们的 `Post` 内容了。
+但是，这样有个问题，当我们的库去查找一个不存在的帖子的时候会抛出一个 `InvalidArgumentException` 异常，我们并没有在控制器中处理这种情况。
 
-Go to your browser and open the URL `http://localhost:8080/blog/99`; you will
-see the following error message:
+打开浏览器，输入 `http://localhost:8080/blog/99`; 你将会看见如下信息：
 
 ```text
 An error occurred
@@ -509,17 +462,17 @@ Message:
 Blog post with identifier "99" not found.
 ```
 
-This is kind of ugly, so our `ListController` should be prepared to do something
-whenever an `InvalidArgumentException` is thrown by the `PostService`. Let's
-have the controller redirect to the blog post overview.
+这种方式是不够友好的，因此我们的 `ListController` 需要对  `PostService`
+抛出的 `InvalidArgumentException` 异常进行预处理。
+将页面重定位到博客的列表页。
 
-First, add a new import to the `ListController` class file:
+首先，在 `ListController` 中引入类：
 
 ```php
 use InvalidArgumentException;
 ```
 
-Now add the following try-catch statement to the `detailAction()` method:
+现在在 `detailAction()` 中添加 try-catch 代码块：
 
 ```php
 public function detailAction()
@@ -538,5 +491,4 @@ public function detailAction()
 }
 ```
 
-Now whenever a user requests an invalid identifier, you'll be redirected to the
-route `blog`, which is our list of blog posts!
+现在，当我们访问一个不存在的帖子的时候，我们将会重定位到路由 `blog`，展示我们的博客列表。
