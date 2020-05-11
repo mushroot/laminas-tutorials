@@ -19,8 +19,8 @@ nav:
           - "模块和服务管理器": in-depth-guide/models-and-servicemanager.md
           - "不同数据库的方案": in-depth-guide/preparing-databases.md
           - "SQL 抽象和对象 Hydration": in-depth-guide/laminas-db-sql-laminas-hydrator.md
-          - "Understanding the Router": in-depth-guide/understanding-routing.md
-          - "Making Use of Forms and Fieldsets": in-depth-guide/laminas-form-laminas-form-fieldset.md
+          - "了解路由": in-depth-guide/understanding-routing.md
+          - "使用表单和字段": in-depth-guide/laminas-form-laminas-form-fieldset.md
           - "添加或删除数据": in-depth-guide/data-binding.md
           - "回顾博客模块": in-depth-guide/review.md
       - "Advanced Configuration": advanced-config.md

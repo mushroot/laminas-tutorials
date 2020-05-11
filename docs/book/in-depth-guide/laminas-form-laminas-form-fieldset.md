@@ -1,50 +1,41 @@
-# Making Use of Forms and Fieldsets
+# 使用表单和字段
 
-So far all we have done is read data from the database. In a real-life
-application, this won't get us very far, as we'll often need to support the full
-range of full `Create`, `Read`, `Update` and `Delete` operations (CRUD).
-Typically, new data will arrive via web form submissions.
+目前，我们已经实现了从数据库中获取数据。在真实的环境中，这样是远远不够的，
+我们需要支持完整的增删改查操作。通常，我们通过WEB表单的方式提交新的数据。
 
-## Form components
+## 表单组件
 
-The [laminas-form](https://docs.laminas.dev/laminas-form/) and
-[laminas-inputfilter](https://docs.laminas.dev/laminas-inputfilter/) components
-provide us with the ability to create fully-featured forms and their validation
-rules. laminas-form consumes laminas-inputfilter internally, so let's take a look at
-the elements of laminas-form that we will use for our application.
+[laminas-form](https://docs.laminas.dev/laminas-form/) 以及
+[laminas-inputfilter](https://docs.laminas.dev/laminas-inputfilter/)
+为我们提供了功能齐全的表单以及验证的组件。
+laminas-form 内建 laminas-inputfilter，因此我们可以直接使用laminas-form。
 
-### Fieldsets
+### 表单元素集
 
-`Laminas\Form\Fieldset` models a reusable set of elements. You will use a
-`Fieldset` to create the various HTML inputs needed to map to your server-side
-entities. It is considered good practice to have one `Fieldset` for every entity
-in your application.
+`Laminas\Form\Fieldset` 是一组可重用的元素。
+你可以使用`Fieldset`来创建和服务端实体对应的各种 HTML.
+为你应用中的每个实体都创建一个  `Fieldset` 是一种比较好的习惯。
 
-The `Fieldset` component, however, is not a form, meaning you will not be able
-to use a `Fieldset` without attaching it to the `Laminas\Form\Form` instance. The
-advantage here is that you have one set of elements that you can re-use for as
-many forms as you like.
+`Fieldset` 组件并非是一个表单，
+这就意味着我们必须将 `Fieldset` 附加到  `Laminas\Form\Form` 之后才能使用。
+这样做的好处就是你可以按照你的喜好对元素进行重用。
 
-### Forms
+### 表单
 
-`Laminas\Form\Form` is a container for all elements of your HTML `<form>`. You are
-able to add both single elements or fieldsets (modeled as `Laminas\Form\Fieldset`
-instances).
+`Laminas\Form\Form` 是一个和 HTML `<form>` 对用的容器。
+你可以在容器内添加元素（`Laminas\Form\Fieldset` 的实体）。
 
-## Creating your first Fieldset
+## 创建你的第一个元素
 
-Explaining how laminas-form works is best done by giving you real
-code to work with. So let's jump right into it and create all the forms we need
-to finish our `Blog` module. We start by creating a `Fieldset` that contains all
-the input elements that we need to work with our blog data:
+介绍 laminas-form 如何工作的最好方法就是来一次真实的编码。
+因此我们直接来创建 `Blog` 模块所需要的所欲表单元素。
+我们先来创建一个包含处理输入博客数据的 `Fieldset`：
 
-- You will need one hidden input for the `id` property, which is only needed for
-  editting and deleting data.
-- You will need one text input for the `title` property.
-- You will need one textarea for the `text` property.
+- 你可能需要为  `id` 属性创建一个隐藏的输入，以用来在编辑或者删除的时候使用。
+- 需要为 `title` 属性创建一个输入框。
+- 需要为 `text` 属性创建一个文本域。
 
-Create the file `module/Blog/src/Form/PostFieldset.php` with the following
-contents:
+创建一个内容如下的文件 `module/Blog/src/Form/PostFieldset.php`：
 
 ```php
 <?php
@@ -80,18 +71,17 @@ class PostFieldset extends Fieldset
 }
 ```
 
-This new class creates an extension of `Laminas\Form\Fieldset` that, in an `init()`
-method (more on this later),  adds elements for each aspect of our blog post. We
-can now re-use this fieldset in as many forms as we want. Let's create our first
-form.
+这个方法继承自 `Laminas\Form\Fieldset`，并实现了 `init()` 方法（之后再详细介绍），
+并为我们的博客添加了需要的元素。
+我们可以在你需要的地方重用当前元素集。
+接下来我们创建我们的第一个表单。
 
-## Creating the PostForm
+## 创建 PostForm
 
-Now that we have our `PostFieldset` in place, we can use it inside a `Form`.
-The form will use the `PostFieldset`, and also include a submit button so that
-the user can submit the data.
+现在我们已经创建好了 `PostFieldset`。我们可以直接在 `Form` 中使用他。
+表单将会使用 `PostFieldset`，以及一个提交按钮以便我们提交数据的时候使用。
 
-Create the file `module/Blog/src/Form/PostForm.php` with the following contents:
+创建文件 `module/Blog/src/Form/PostForm.php` 内容如下:
 
 ```php
 <?php
@@ -119,37 +109,32 @@ class PostForm extends Form
 }
 ```
 
-And that's our form. Nothing special here, we add our `PostFieldset` to the
-form, we add a submit button to the form, and nothing more.
+这就是我们的表单了。没有任何特别的地方，我们向表单中添加了  `PostFieldset`
+和一个提交按钮，仅此而已。
 
-## Adding a new Post
+## 创建一个新 Post
 
-Now that we have the `PostForm` written, it's time to use it. But there are a
-few more tasks left:
+现在我们已经编写完了 `PostForm`，是时候使用他了。
+在这之前我们还有一些事要做：
 
-- We need to create a new controller `WriteController` which accepts the
-  following instances via its constructor:
-  - a `PostCommandInterface` instance
-  - a `PostForm` instance
-- We need to create an `addAction()` method in the new `WriteController` to
-  handle displaying the form and processing it.
-- We need to create a new route, `blog/add`, that routes to the
-  `WriteController` and its `addAction()` method.
-- We need to create a new view script to display the form.
+- 我们需要创建一个新的控制器 `WriteController` 并注入一些内容：
+  - 一个 `PostCommandInterface` 实例
+  - 一个 `PostForm` 实例
+- 需要在新的 `WriteController` 中创建一个 `addAction()` 方法用来展示并处理表单。
+- 创建一个新的路由 `blog/add`，路由指向 `WriteController` 的 `addAction()` 方法。
+- 同时需要创建一个视图脚本来展示表单。
 
-### Creating the WriteController
+### 创建 WriteController
 
-While we could re-use our existing controller, it has a different
-responsibility: it will be *writing* new blog posts. As such, it will need to
-emit *commands*, and thus use the `PostCommandInterface` that we have defined
-previously.
+尽管我们可以重用已经存在的控制器，但是其却有不同的功能：用来撰写一篇新的文章。
+因此，他需要发出请求，并使用之前定义的 `PostCommandInterface`。
 
-To do that, it needs to accept and process user input, which we have modeled
-in our `PostForm` in a previous section of this chapter.
+为了实现这个目的，我们需要接收并处理用户输入的数据，
+并使用本章节前面部分中定义的 `PostForm` 模块。
 
-Let's create this new class now. Open a new file,
-`module/Blog/src/Controller/WriteController.php`, and add the following
-contents:
+创建一个新的文件
+`module/Blog/src/Controller/WriteController.php`,
+内容如下：
 
 ```php
 <?php
@@ -189,9 +174,9 @@ class WriteController extends AbstractActionController
 }
 ```
 
-We'll now create a factory for this new controller; create a new file,
-`module/Blog/src/Factory/WriteControllerFactory.php`, with the following
-contents:
+并为这个控制器创建一个新的工厂类
+`module/Blog/src/Factory/WriteControllerFactory.php`,
+内容如下
 
 ```php
 <?php
@@ -222,22 +207,18 @@ class WriteControllerFactory implements FactoryInterface
 }
 ```
 
-The above factory introduces something new: the `FormElementManager`. This is a
-plugin manager implementation that is specifically for forms. We don't
-necessarily need to register our forms with it, as it will check to see if a
-requested instance is a form when attempting to pull one from it. However, it
-does provide a couple nice features: 
+上面的工程类中我们引入了一个新的东西：`FormElementManager`。
+这是一个专门针对表单的插件。
+我们不必自己注册表单，因为当我们请求一个实体的时候，他会先去检测其是否为表单。
+而且他还提供了一些不错的功能：
 
-- If the form or fieldset or element retrieved implements an `init()` method, it
-  invokes that method after instantiation. This is useful, as that way we're
-  initializing after we have all our dependencies injected, such as input
-  filters. Our form and fieldset define this method!
-- It ensures that the various plugin managers related to input validation are
-  shared with the instance, a feature we'll be using later.
+- 如果表单或者表单元素实现了 `init()` 方法，实例化之后将会调用该方法。
+  这样做是很有用的，这样就可以在注入所有依赖之后进行初始化操作。
+  我们的表单和表单元素都会定义在这个方法中。
+- 他确保了与输入验证相关的插件管理器之前共享实例，我们将会在之后使用他。
 
-Finally, we need to configure the new factory; in
-`module/Blog/config/module.config.php`, add an entry in the `controllers`
-configuration section:
+最终，我们需要在 `module/Blog/config/module.config.php`
+中配置新的工厂方法，并将其添加到 `controllers` 配置项中：
 
 ```php
 'controllers' => [
@@ -249,8 +230,7 @@ configuration section:
 ],
 ```
 
-Now that we have the basics for our controller in place, we can create a route
-to it:
+现在我们已经完成了控制器的基本配置，我们可以将其添加到路由中了：
 
 ```php
 <?php
@@ -309,17 +289,16 @@ return [
 ];
 ```
 
-Finally, we'll create a dummy template:
+然后，我们创建了一个临时模板：
 
 ```html
 <!-- Filename: module/Blog/view/blog/write/add.phtml -->
 <h1>WriteController::addAction()</h1>
 ```
 
-### Check-in
+### 检查
 
-If you try to access the new route `localhost:8080/blog/add` you're supposed to
-see the following error message:
+如果此时你访问路由 `localhost:8080/blog/add` 将会看见如下错误信息：
 
 ```text
 An error occurred
@@ -337,16 +316,12 @@ Message:
 Unable to resolve service "Blog\Model\PostCommandInterface" to a factory; are you certain you provided it during configuration?
 ```
 
-If this is not the case, be sure to follow the tutorial correctly and carefully
-check all your files.
+如果并非出现这种情况，请确保完全按照本教程操作，并检查所有的文件。
 
-The error is due to the fact that we have not yet defined an *implementation* of
-our `PostCommandInterface`, much less wired the implementation into our
-application!
+这个错误是指我们没有定义 `PostCommandInterface` 的实现，更不用说将其引入我们的应用中！
 
-Let's create a dummy implementation, as we did when we first started working
-with repositories. Create the file `module/Blog/src/Model/PostCommand.php` with
-the following contents:
+让我们先来创建一个临时的实现，就像是我们刚开始使用库那样。
+创建文件 `module/Blog/src/Model/PostCommand.php` 内容如下：
 
 ```php
 <?php
@@ -377,7 +352,7 @@ class PostCommand implements PostCommandInterface
 }
 ```
 
-Now add service configuration in `module/Blog/config/module.config.php`:
+并在 `module/Blog/config/module.config.php` 中添加服务配置：
 
 ```php
 'service_manager' => [
@@ -394,12 +369,12 @@ Now add service configuration in `module/Blog/config/module.config.php`:
 ],
 ```
 
-Reloading your application now will yield you the desired result.
+刷新你就可以看见想要的结果了。
 
-## Displaying the form
+## 展示表单
 
-Now that we have new controller working, it's time to pass this form to the view
-and render it.  Change your controller so that the form is passed to the view:
+现在我们已经拥有了一个正常工作的控制器，是时候展示表单了。
+修稿控制器将表单传递给视图：
 
 ```php
 // In /module/Blog/src/Controller/WriteController.php:
@@ -411,7 +386,7 @@ public function addAction()
 }
 ```
 
-And then we need to modify our view to render the form:
+接下来我们需要修改视图来渲染表单：
 
 ```php
 <!-- Filename: module/Blog/view/blog/write/add.phtml -->
@@ -427,32 +402,28 @@ echo $this->formCollection($form);
 echo $this->form()->closeTag();
 ```
 
-The above does the following:
+上面进行了如下操作：
 
-- We set the `action` attribute of the form to the current URL.
-- We "prepare" the form; this ensures any data or error messages bound to the
-  form or its various elements are injected and ready to use for display
-  purposes.
-- We render an opening tag for the form we are using.
-- We render the contents of the form, using the `formCollection()` view helper;
-  this is a convenience method with some typically sane default markup. We'll be
-  changing it momentarily.
-- We render a closing tag for the form.
+- 我们设置了表单的 `action` 属性为当前路由。
+- 初始化表单；以确保数据、错误信息或其他元素都注入表单以便显示。
+- 渲染当前表单的开始标签。
+- 使用 `formCollection()` 视图助手渲染表单内容；
+  他具有一些通用的标签。我们暂时就使用他了。
+- 渲染表单的结束标签。
 
-> ### Form method
+> ### 表单方法
 >
-> HTML forms can be sent using `POST` and `GET`. laminas-form defaults to `POST`.
-> If you want to switch to `GET`:
+> HTML 表单可以使用 `POST` and `GET` 方法。 laminas-form 默认使用 `POST`.
+> 如果你想切换为 `GET`:
 >
 > ```php
 > $form->setAttribute('method', 'GET');
 > ```
 
-Refreshing the browser you will now see your form properly displayed. It's not
-pretty, though, as the default markup does not follow semantics for Bootstrap
-(which is used in the skeleton application by default). Let's update it a bit to
-make it look better; we'll do that in the view script itself, as markup-related
-concerns belong in the view layer:
+刷新浏览器你将会看见表单以及正常展示出来了。
+不过他看起来并不好看，默认也不使用 Bootstrap 标签（框架默认使用）。
+让我们稍微更新下，让其变得好看点；
+在当前视图脚本中为视图加上相关标记：
 
 ```php
 <!-- Filename: module/Blog/view/blog/write/add.phtml -->
@@ -500,32 +471,26 @@ echo $this->formHidden($fieldset->get('id'));
 echo $this->form()->closeTag();
 ```
 
-The above adds HTML attributes to a number of the elements we've defined, and
-uses more specific view helpers to allow us to render the exact markup we want
-for our form.
+上面的代码中我们为每一个定义的元素都添加了 HTML 属性。
+并使用更加明确的视图助手以允许我们来渲染需要的表单。
 
-However, if we're submitting the form all we see is our form being displayed
-again. And this is due to the simple fact that we didn't add any logic to the
-controller yet.
+然后，当我们提交表单的时候，我们看见的只是一个重新渲染的表单。
+当我们为向控制器中添加业务逻辑的时候这事一个默认的处理方式。
 
-## General form-handling logic for controllers
+## 为控制器添加业务逻辑
 
-Writing a controller that handles a form workflow follows the same basic pattern
-regardless of form and entities:
+无论表单或者实体的结构如果，编写一个处理表单工作流控制器的模式都差不多：
 
-1. You need to check if the HTTP request method is via `POST`, meaning if the
-   form has been sent.
-2. If the form has been sent, you need to:
-   - pass the submitted data to your `Form` instance
-   - validate the `Form` instance
-3. If the form passes validation, you will:
-   - persist the form data
-   - redirect the user to either the detail page of the entered data, or to an
-     overview page
-4. In all other cases, you need to display the form, potentially with error
-   messages.
+1. 你需要检查当前请求方式是否为 `POST`，确保表单提交了。
+2. 如果接收到提交的表单，你需要：
+  - 将提交的数据传递给 `Form` 实例
+  - 验证表单实例
+3. 如果验证通过，你需要：
+  - 保存数据
+  - 将用户重定向到数据数据的详情页或者预览页
+4. 在其他情况下，你需要展示表单，并可能需要展示错误信息。
 
-Modify your `WriteController:addAction()` to read as follows:
+按照如下方式修改 `WriteController:addAction()`：
 
 ```php
 public function addAction()
@@ -561,26 +526,25 @@ public function addAction()
 }
 ```
 
-Stepping through the code:
+逐步执行代码：
 
-- We retrieve the current request.
-- We create a default view model containing the form.
-- If we do not have a `POST` request, we return the default view model.
-- We populate the form with data from the request.
-- If the form is not valid, we return the default view model; at this point, the
-  form will also contain error messages.
-- We create a `Post` instance from the validated data.
-- We attempt to insert the post.
-- On success, we redirect to the post's detail page.
+- 接收请求。
+- 创建一个默认的视图模型用来容纳表单。
+- 如果我们收到非 `POST` 请求，直接返回视图。
+- 将接收到的 post 数据填充入表单。
+- 如果表单验证失败，直接返回默认的视图，这里的表单将会包含错误信息。
+- 利用验证后的数据创建 `Post` 实例。
+- 尝试插入数据。
+- 成功后，重定向到详情页。
 
-> ### Child route names
+> ### 子路由名称
 >
-> When using the various `url()` helpers provided in laminas-mvc and laminas-view,
-> you need to provide the name of a route. When using child routes, the route
-> name is of the form `<parent>/<child>` &mdash; i.e., the parent name and child
-> name are separated with a slash.
+> 当我们使用 laminas-mvc 以及 laminas-view 提供的视图助手变量 `url()` 的时候，
+> 你需要提供一个路由名称。当使用子路由的时候，
+> 路由名称为  `<parent>/<child>` &mdash; i.e.,
+> 父路由名称与子路由名称使用斜杠隔开。
 
-Submitting the form right now will return into the following error
+现在我们提交表单将会看见如下的错误信息
 
 ```text
 Fatal error: Call to a member function getId() on null in
@@ -588,11 +552,10 @@ Fatal error: Call to a member function getId() on null in
 on line {lineNumber}
 ```
 
-This is because our stub `PostCommand` class does not return a new `Post`
-instance, violating the contract!
+那是因为我们的 `PostCommand` 类没有按照约定返回一个 `Post` 实例！
 
-Let's create a new implementation to work against laminas-db. Create the file
-`module/Blog/src/Model/LaminasDbSqlCommand.php` with the following contents:
+让我们使用 laminas-db 来创建一个新的实例的实现。
+新建文件 `module/Blog/src/Model/LaminasDbSqlCommand.php` 内容如下：
 
 ```php
 <?php
@@ -612,7 +575,7 @@ class LaminasDbSqlCommand implements PostCommandInterface
      * @var AdapterInterface
      */
     private $db;
- 
+
     /**
      * @param AdapterInterface $db
      */
@@ -667,18 +630,16 @@ class LaminasDbSqlCommand implements PostCommandInterface
 }
 ```
 
-In the `insertPost()` method, we do the following:
+在 `insertPost()` 方法中，我们做了如下操作：
 
-- We create a `Laminas\Db\Sql\Insert` instance, providing it the table name.
-- We add values to the `Insert` instance.
-- We create a `Laminas\Db\Sql\Sql` instance with the database adapter, and prepare
-  a statement from our `Insert` instance.
-- We execute the statement and check for a valid result.
-- We marshal a return value.
+- 依照表名创建了一个 `Laminas\Db\Sql\Insert` 实例。
+- 向 `Insert` 实例中添加值。
+- 使用数据库适配器创建了一个 `Laminas\Db\Sql\Sql` 实例，并将 `Insert` 实例作为语句传入。
+- 执行语句并检查结果。
+- 将返回结果封装并返回。
 
-Now that we have this in place, we'll create a factory for it; create the file
-`module/Blog/src/Factory/LaminasDbSqlCommandFactory.php` with the following
-contents:
+现在我们需要为其创建一个工厂；
+新建文件 `module/Blog/src/Factory/LaminasDbSqlCommandFactory.php` 内容如下：
 
 ```php
 <?php
@@ -698,8 +659,8 @@ class LaminasDbSqlCommandFactory implements FactoryInterface
 }
 ```
 
-And finally, we'll wire it up in the configuration; update the `service_manager`
-section of `module/Blog/config/module.config.php` to read as follows:
+最后，我们还需要更新配置；更新 `module/Blog/config/module.config.php`
+的 `service_manager` 部分如下：
 
 ```php
 'service_manager' => [
@@ -718,31 +679,30 @@ section of `module/Blog/config/module.config.php` to read as follows:
 ],
 ```
 
-Submitting your form again, it should process the form and redirect you to the
-detail page for the new entry!
+再次提交表单，他将会处理表单信息并将页面重定向到新添加条目的详情页：
 
-Let's see if we can improve this a bit.
+让我们看看是否可以进一步优化。
 
-## Using laminas-hydrator with laminas-form
+## 在 laminas-form 中使用 laminas-hydrator
 
-In our controller currently, we have the following:
+在我们当前的控制器中，我们的代码如下：
 
 ```php
 $data = $this->form->getData()['post'];
 $post = new Post($data['title'], $data['text']);
 ```
 
-What if we could automate that, so we didn't need to worry about:
+如果这里我们可以实现自动化操作，那么就不用担心会出现下面这种情况了：
 
-- Whether or not we're using a fieldset
-- What the form fields are named
+- 我们是否使用了元素集
+- 以及字段集合的名称是否出错
 
-Fortunately, laminas-form features integration with laminas-hydrator. This will allow
-us to return a `Post` instance when we retrieve the validated values!
+幸运的是，laminas-form 继承了 laminas-hydrator。
+他将会在我们进行数据验证之后直接返回 `Post` 实例！
 
-Let's udpate our fieldset to provide a hydrator and a prototype object.
+让我们更新我们的元素集合以继承 hydrator 和对象原型。
 
-First, add two import statements to the top of the class file:
+首先，在类文件的顶部引入两个类的声明：
 
 ```php
 // In module/Blog/src/Form/PostFieldset.php:
@@ -750,7 +710,7 @@ use Blog\Model\Post;
 use Laminas\Hydrator\Reflection as ReflectionHydrator;
 ```
 
-Next, update the `init()` method to add the following two lines:
+接下来，更新 `init()` 方法，添加如下类：
 
 ```php
 // In /module/Blog/src/Form/PostFieldset.php:
@@ -764,17 +724,15 @@ public function init()
 }
 ```
 
-When you grab the data from this fieldset, it will be returned as a `Post`
-instance.
+当你从元素集中或者数据的时候，将会直接返回 `Post` 实例。
 
-However, we grab data *from the form*; how can we simplify that interaction?
+然而，当我们需要从 *嵌套* 元素中获取数据；我们应该如何简化这种操作呢？
 
-Since we only have the one fieldset, we'll set it as the form's *base fieldset*.
-This hints to the form that when we retrieve data from it, it should return the
-values from the specified fieldset instead; since our fieldset returns the
-`Post` instance, we'll have exactly what we need.
+由于我们仅仅就一个元素集，我们会将其设置为表单的默认元素集。
+这样就会在我们获取数据的时候就会返回我们制定的那个元素集；
+为了要让其返回 `Post` 实例，我们需要执行如下操作。
 
-Modify your `PostForm` class as follows:
+按照如下方式修改 `PostForm` 类：
 
 ```php
 // In /module/Blog/src/Form/PostForm.php:
@@ -792,29 +750,25 @@ public function init()
     /* ... */
 ```
 
-Let's update our `WriteController`; modify the `addAction()` method to replace
-the following two lines:
+接下来我们更新 `WriteController`；使用如下内容更新 `addAction()` 方法：
 
 ```php
 $data = $this->form->getData()['post'];
 $post = new Post($data['title'], $data['text']);
 ```
 
-to:
+更新为：
 
 ```php
 $post = $this->form->getData();
 ```
 
-Everything should continue to work. The changes done serve the purpose of
-de-coupling the details of how the form is structured from the controller,
-allowing us to work directly with our entities at all times!
+现在一切都正常运作了。做这么多的目的就是为了让控制器与表单结构解耦，
+从而使我们可以直接与实体进行交互！
 
-## Conclusion
+## 总结
 
-In this chapter, we've learned the fundamentals of using laminas-form, including
-adding fieldsets and elements, rendering the form, validating input, and wiring
-forms and fieldsets to use entities.
+在本章节中，我们学习了使用 laminas-form 的一些基本功能，
+包括 fieldsets 和 elements，表单的渲染，验证输入信息，将元素集与实体类进行绑定。
 
-In the next chapter we will finalize the CRUD functionality by creating the
-update and delete routines for the blog module.
+在接下来的章节汇总，我们将会使用增删改查的功能来进一步完善博客模块的功能。
