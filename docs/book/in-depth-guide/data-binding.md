@@ -1,34 +1,31 @@
-# Editing and Deleting Data
+# 编辑以及删除数据
 
-In the previous chapter we've come to learn how we can use the laminas-form and
-laminas-db components for *creating* new data-sets. This chapter will focus on
-finalizing the CRUD functionality by introducing the concepts for *editing* and
-*deleting* data.
+在之前的章节中，我们学习了如何使用 laminas-form 和 laminas-db 组件来创建一个新的数据集。
+本章节我们将通过学记编辑和删除数据来系统性的学习增删改查功能。
 
-## Binding Objects to Forms
+## 将对象绑定到表单上
 
-The one fundamental difference between our "add post" and "edit post" forms is
-the existence of data.  This means we need to find a way to get data from our
-repository into the form. Luckily, laminas-form provides this via a
-**data-binding** feature.
+添加文章和编辑文章表单唯一不同的点就在于是够拥有数据。
+这就意味着我们需要找到一种方式将库中的数据添加到表单中。
+幸运的是，laminas-form 提供给了一个**数据绑定** 的特性。
 
-In order to use this feature, you will need to retrieve a `Post` instance, and
-bind it to the form. To do this, we will need to:
+为了使用这个特性，你需要获取一个 `Post` 实例，并将其绑定到表单中。
+为了达到这个目的我们需要进行如下几步操作。
 
-- Add a dependency in our `WriteController` on our `PostRepositoryInterface`,
-  from which we will retrieve our `Post`.
-- Add a new method to our `WriteController`, `editAction()`, that will retrieve
-  a `Post`, bind it to the form, and either display the form or process it.
-- Update our `WriteControllerFactory` to inject the `PostRepositoryInterface`.
+- 在 `WriteController` 中添加一个 `PostRepositoryInterface` 的依赖，
+  以便我们获取 `Post`。
+- 在 `WriteController` 中添加一个新方法 `editAction()`，
+  他将获取一个 `Post` 实例并将其绑定到表单中，并展示或者处理数据。
+- 更新 `WriteControllerFactory` 以注入 `PostRepositoryInterface`。
 
-We'll begin by updating the `WriteController`:
+现在我们开始更新 `WriteController`:
 
-- We will import the `PostRepositoryInterface`.
-- We will add a property for storing the `PostRepositoryInterface`.
-- We will update the constructor to accept the `PostRepositoryInterface`.
-- We will add the `editAction()` implementation.
+- 引入 `PostRepositoryInterface`。
+- 添加一个变量用来承接 `PostRepositoryInterface`。
+- 更新 constructor 添加 `PostRepositoryInterface`。
+- 添加 `editAction()` 方法。
 
-The final result will look like the following:
+最终效果如下：
 
 ```php
 <?php
@@ -143,21 +140,20 @@ class WriteController extends AbstractActionController
 }
 ```
 
-The primary differences between `addAction()` and `editAction()` are that the
-latter needs to first fetch a `Post`, and this post is *bound* to the form. By
-binding it, we ensure that the data is populated in the form for the initial
-display, and, once validated, the same instance is updated. This means that we
-can omit the call to `getData()` after validating the form.
+`addAction()` 和 `editAction()` 最大的不同就在于后者首先需要查询一个 `Post`，
+并将其与表单绑定。通过绑定操作以确保数据通过表单展示出来，
+并且在数据验证通过后可以直接更新实例。
+这就意味着我们在验证表单后可以不用调用 `getData()`。
 
-Now we need to update our `WriteControllerFactory`. First, add a new import
-statement to it:
+现在我们开始更新 `WriteControllerFactory`。
+首先，引入一个新的类：
 
 ```php
 // In module/Blog/src/Factory/WriteControllerFactory.php:
 use Blog\Model\PostRepositoryInterface;
 ```
 
-Next, update the body of the factory to read as follows:
+接下来按照如下内容更新内容：
 
 ```php
 // In module/Blog/src/Factory/WriteControllerFactory.php:
@@ -173,18 +169,16 @@ public function __invoke(ContainerInterface $container, $requestedName, array $o
 }
 ```
 
-The controller and model are now wired together, so it's time to turn to
-routing.
+控制器和模型都进行了更新，是时候来更新路由了。
 
-## Adding the edit route
+## 添加编辑时使用的路由
 
-The edit route is identical to the `blog/detail` route we previously defined,
-with two exceptions:
+编辑时的路由和我们之前定义的 `blog/detail` 路由类似，但是有两个不同的地方：
 
-- it will have a path prefix, `/edit`
-- it will route to our `WriteController`
+- 需要拥有一个路径前缀 `/edit`。
+- 需要导航到 `WriteController`
 
-Update the 'blog' `child_routes` to add the new route:
+更新 'blog' 的 `child_routes`，以添加新的路由：
 
 ```php
 // In module/Blog/config/module.config.php:
@@ -223,15 +217,13 @@ return [
 ];
 ```
 
-## Creating the edit template
+## 创建编辑模板
 
-Rendering the form remains essentially the same between the `add` and `edit`
-templates; the only difference between them is the form action. As such, we will
-create a new *partial* script for the form, update the `add` template to use it,
-and create a new `edit` template.
+`add` 和 `edit` 需要渲染的表单类似；唯一不同点就在于表单的 action 属性。
+因此我们可以为表单创建一个新的 *partial* 脚本，更新 `add` 模板以使用他，
+并创建一个新的 `edit` 模板。
 
-Create a new file, `module/Blog/view/blog/write/form.phtml`, with the following
-contents:
+创建一个新的文件 `module/Blog/view/blog/write/form.phtml`, 内容如下：
 
 ```php
 <?php
@@ -275,8 +267,7 @@ echo $this->formHidden($fieldset->get('id'));
 echo $this->form()->closeTag();
 ```
 
-Now, update the `add` template, `module/Blog/view/write/add.phtml` to read as
-follows:
+现在， 更新 `add` 模板 `module/Blog/view/write/add.phtml`，内容如下：
 
 ```php
 <h1>Add a blog post</h1>
@@ -290,11 +281,11 @@ echo $this->partial('blog/write/form', [
 ]);
 ```
 
-The above retrieves the form, sets the form action, provides a
-context-appropriate label for the submit button, and renders it with our new
-partial view script.
+以上获取了表单并设置了其 action 属性，为提交按钮提供了一个满足上下午的标签，
+同时渲染了我们新建的 partial 视图脚本。
 
-Next in line is the creation of the new template, `blog/write/edit`:
+
+接下来创建新的模板, `blog/write/edit`:
 
 ```php
 <h1>Edit blog post</h1>
@@ -308,31 +299,30 @@ echo $this->partial('blog/write/form', [
 ]);
 ```
 
-The three differences between the `add` and `edit` templates are:
+`add` 和 `edit` 模板有三处不同的地方：
 
-- The heading at the top of the page.
-- The URI used for the form action.
-- The label used for the submit button.
+- 标题。
+- 表单 action 属性的链接。
+- 提交按钮的文本。
 
-Because the URI requires the identifier, we need to ensure the identifier is
-passed. The way we've done this in the controllers is to pass the identifier as
-a parameter: `$this->url('blog/edit/', ['id' => $id])`. This would require that
-we pass the original `Post` instance or the identifier we pull from it to the
-view, however. laminas-router allows another option, however: you can tell it to
-re-use currently matched parameters.  This is done by setting the last parameter
-of the view-helper to `true`: `$this->url('blog/edit', [], true)`.
+因为 URI 需要一个ID，我们需要确保传了ID。
+我们可以在控制器中将其作为参数直接传递：`$this->url('blog/edit/', ['id' => $id])`。
+这样的话就需要我们将ID或者 `Post` 实例传递给视图，
+然而 laminas-router 给了我们另一种选择，你可以告诉他直接使用当前匹配的参数。
+我们只需要将视图脚本的最后一个变量设置为
+`true`: `$this->url('blog/edit', [], true)`。
 
-If you try and update the post, you will receive the following error:
+如果这时候更新文章，你将会得到如下错误信息：
 
 ```text
 Call to member function getId() on null
 ```
 
-That is because we have not yet implemented the update functionality in
-our command class which will return a Post object on success. Let's do that now.
+那事因为我们尚未在类中实现更新功能并在成功后返回一个 Post 对象。
+现在我们来实现这个功能。
 
-Edit the file `module/Blog/src/Model/LaminasDbSqlCommand.php`, and update the
-`updatePost()` method to read as follows:
+编辑文件 `module/Blog/src/Model/LaminasDbSqlCommand.php`，
+并按照如下方式更新 `updatePost()` 方法：
 
 ```php
 public function updatePost(Post $post)
@@ -362,23 +352,19 @@ public function updatePost(Post $post)
 }
 ```
 
-This looks very similar to the `insertPost()` implementation we did earlier. The
-primary difference is the usage of the `Update` class; instead of calling a
-`values()` method on it, we call:
+这样看起来和我们之前编写的 `insertPost()` 比较类似。
+二者主要的不同就在于后者使用了 `Update` 类；并且使用如下方法替换 `values()` 方法：
 
-- `set()`, to provide the values we are updating.
-- `where()`, to provide criteria to determine which records (record singular, in
-  our case) are updated.
+- `set()`，提供我们需要更新的值。
+- `where()`，提供条件以确定更新哪些记录（本例中为单条记录）。
 
-Additionally, we test for the presence of an identifier before performing the
-operation, and, because we already have one, and the `Post` submitted to us
-contains all the edits we submitted to the database, we return it verbatim on
-success.
+另外，在执行操作之前我们需要通过检测ID是够存在以确保内容是否存在。
+然后将我们对帖子的编辑情况提交给数据库，成功后返回当前帖子。
 
-## Implementing the delete functionality
+## 实现删除操作
 
-Last but not least, it's time to delete some data. We start this process by
-implementing the `deletePost()` method in our `LaminasDbSqlCommand` class:
+最后但是同样重要的是，我们需要去删除一些数据。
+我们首先在 `LaminasDbSqlCommand` 中实现 `deletePost()` 方法：
 
 ```php
 // In module/Blog/src/Model/LaminasDbSqlCommand.php:
@@ -404,12 +390,10 @@ public function deletePost(Post $post)
 }
 ```
 
-The above uses `Laminas\Db\Sql\Delete` to create the SQL necessary to delete the
-post with the given identifier, which we then execute.
+上面的代码中我们使用了 `Laminas\Db\Sql\Delete` 来创建 SQL 语句已删除我们制定的文章。
 
-Next, let's create a new controller, `Blog\Controller\DeleteController`, in a
-new file `module/Blog/src/Controller/DeleteController.php`, with the following
-contents:
+接下来，我们在文件 `module/Blog/src/Controller/DeleteController.php`
+中创建一个新的控制器 `Blog\Controller\DeleteController` 内容如下：
 
 ```php
 <?php
@@ -476,19 +460,16 @@ class DeleteController extends AbstractActionController
 }
 ```
 
-Like the `WriteController`, it composes both our `PostRepositoryInterface` and
-`PostCommandInterface`. The former is used to ensure we are referencing a valid
-post instance, and the latter to perform the actual deletion.
+和 `WriteController` 类似，
+同样需要依赖 `PostRepositoryInterface` 和 `PostCommandInterface`。
+前者确保我们可以获取执行的 post 实例，后者用于执行实际的删除操作。
 
-When a user requests the page via the `GET` method, we will display a page
-containing details of the post, and a confirmation form. When submitted, we'll
-check to make sure they confirmed the deletion before issuing our delete
-command. If any conditions fail, or on a successful deletion, we redirect to our
-blog listing page.
+当我们使用 `GET` 方式访问页面的时候，我们将会展示一个包含文章详情的确认表单。
+以便在我们提交删除操作之前确认文章，当发生错误或者成功，我们都将重定向到文章列表页。
 
-Like the other controllers, we now need a factory. Create the file
-`module/Blog/src/Factory/DeleteControllerFactory.php` with the following
-contents:
+和其他控制器类似，我们需要一个工厂类。
+新建文件 `module/Blog/src/Factory/DeleteControllerFactory.php`
+内容如下：
 
 ```php
 <?php
@@ -518,11 +499,10 @@ class DeleteControllerFactory implements FactoryInterface
 }
 ```
 
-We'll now wire this into the application, mapping the controller to its factory,
-and providing a new route. Open the file `module/Blog/config/module.config.php`
-and make the following edits.
+现在我们需要将其和应用结合，将控制器映射到工厂，并提供一个新的路由。
+打开文件 `module/Blog/config/module.config.php` 按如下内容修改：
 
-First, map the controller to its factory:
+首先将控制器映射到工厂：
 
 ```php
 'controllers' => [
@@ -535,7 +515,7 @@ First, map the controller to its factory:
 ],
 ```
 
-Now add another child route to our "blog" route:
+为 "blog" 新增一个子路由：
 
 ```php
 'router' => [
@@ -565,8 +545,9 @@ Now add another child route to our "blog" route:
 ],
 ```
 
-Finally, we'll create a new view script,
-`module/Blog/view/blog/delete/delete.phtml`, with the following contents:
+最后，创建视图脚本，
+`module/Blog/view/blog/delete/delete.phtml`
+内容如下：
 
 ```php
 <h1>Delete post</h1>
@@ -584,33 +565,30 @@ Finally, we'll create a new view script,
 </form>
 ```
 
-This time around, we're not using laminas-form; as it consists of just a hidden
-element and cancel/confirm buttons, there's no need to provide an OOP model for it.
+在这里，我们并没有使用 laminas-form，那是因为这里仅仅使用了一个因此的元素
+以及取货这货同意按钮，没有必要再为其提供 OOP 模型。
 
-From here, you can now visit one of the existing blog posts, e.g.,
-`http://localhost:8080/blog/delete/1` to see the form. If you choose `Cancel`,
-you should be taken back to the list; if you choose `Delete`, it should delete
-the post and then take you back to the list, and you should see the post is no
-longer present.
+到此，你可以访问已经存在的文章，例如
+`http://localhost:8080/blog/delete/1` 来查看这个表单。
+如果你选择 `Cancel` 你将会直接返回文章列表；
+如果你选择 `Delete` 系统将会删除文章然后返回文章列表，
+当前文章也将被永久删除。
 
-## Making the list more useful
+## 让列表变得更加实用
 
-Our blog post list currently lists everything about all of our blog posts;
-additionally, it doesn't link to them, which means we have to manually update
-the URL in our browser in order to test functionality. Let's update the list
-view to be more useful; we'll:
+现在的文章列表列出了文章的所有信息；
+另外，也没有添加链接，这样的话我们就需要在浏览器中输入链接以达到操作文章的目的。
+我们参照如下步骤来更新列表，使其更加实用：
 
-- List just the title of each blog post;
-- linking the title to the post display;
-- and providing links for editing and deleting the post.
-- Add a button to allow users to add a new post.
+- 仅仅在列表中列出文章的标题；
+- 为每个文章的标题添加展示文章内容的链接；
+- 提供删除和编辑文章的链接；
+- 添加新增文章的链接。
 
-In a real-world application, we'd probably use some sort of access controls to
-determine if the edit and delete links will be displayed; we'll leave that for
-another tutorial, however.
+在真实应用场景中，我们可能会实用某些权限控制来确定是否显示删除或者编辑链接；
+但是我们会在另一个教程中来展示。
 
-Open your `module/Blog/view/blog/list/index.phtml` file, and update it to read
-as follows:
+打开文件 `module/Blog/view/blog/list/index.phtml` 按照如下内容更新：
 
 ```php
 <h1>Blog Posts</h1>
@@ -637,24 +615,19 @@ as follows:
 </div>
 ```
 
-At this point, we have a far more functional blog, as we can move around between
-pages using links and buttons.
+至此，我们有了一个功能更强大的博客，因为我们可以使用链接和按钮在页面之间移动。
 
-## Summary
+## 总结
 
-In this chapter we've learned how data binding within the laminas-form component
-works, and used it to provide functionality for our update routine. We also
-learned how this allows us to de-couple our controllers from the details of how
-a form is structured, helping us keep implementation details out of our
-controller.
+在本章节中，我们学习了如何使用 laminas-form 组件中的数据绑定，
+并使用他更新了几个功能。
+我们还了解了如何将控制器与表单解耦，从而将具体的实现排除在控制器之外。
 
-We also demonstrated the use of view partials, which allow us to split out
-duplication in our views and re-use them. In particular, we did this with our
-form, to prevent needlessly duplicating the form markup.
+我们还展示了局部（partials）视图组件的使用，这样使得我们可以将视图的中部分组件拆分重用。特别是我们将其使用在了表单中，以防止出现重复的标记。
 
-Finally, we looked at two more aspects of the `Laminas\Db\Sql` subcomponent, and
-learned how to perform `Update` and `Delete` operations.
+最后我们还学习了 `Laminas\Db\Sql` 的两个子组件 `Update` 和 `Delete`，
+并学习了如何去操作他们。
 
-In the next chapter we'll summarize everything we've done. We'll talk about the
-design patterns we've used, and we'll cover several questions that likely arose
-during the course of this tutorial.
+在接下来的章节中，我们将对之前的操作做一个总结，
+并讨论下我们在其中使用的设计模式，
+并涵盖了本教材中可能会出现的几个问题。
