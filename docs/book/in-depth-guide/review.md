@@ -1,55 +1,44 @@
-# Reviewing the Blog Module
+# 回顾博客模块
 
-Throughout the tutorial, we have created a fully functional CRUD module
-using a blog as an example. While doing so, we've made use of several different
-design patterns and best-practices. Now it's time to reiterate and take a look
-at some of the code samples we've written. This is going to be done in a Q&A
-fashion.
+通过本教程，我们使用一个博客作为例子学习了如果使用增删改查功能。
+在这个过程中，我们使用了几种不同的设计模式和最佳实践。
+现在我们开始回顾下我们编写的这些代码，并以问答的形式作解答。
 
-## Do we always need all the layers and interfaces?
+## 我们是否总是要在所有的场景中使用接口？
 
-Short answer: no.
+简单来说：不用。
 
-Long answer: The importance of interfaces increases the bigger your application
-becomes. If you can foresee that your application will be used by other people
-or should be extendable, then you should strongly consider creating interfaces
-and coding to them.  This is a very common best-practice that is not tied to
-Laminas specifically, but rather more general object oriented
-programming.
+详细说明：接口的重要性是随着你的应用变大而变得重要的。
+如果你的应用将来会被别人使用或是可扩展的，
+那么就需要考虑下编写并使用接口了。
+这是一种基本的最佳实践方式和 Laminas 无关，
+而是遵循了通用的面向对象的设计规范。
 
-The main role of the multiple layers that we have introduced are to provide a
-strict separation of concerns for our application.
+我们之前介绍的多层编程概念主要是将我们的应用做严格的分离。
 
-It is tempting to include your database access directly in your controllers. We
-recommend splitting it out to other objects, and providing interfaces for the
-interactions whenever you can. Doing so helps decouple your controllers from the
-implementation, allowing you to swap out the implementation later without
-changing the controllers. Using interfaces also simplifies testing, as you can
-provide mock implementations easily.
+将数据库操作放入控制器是非常诱人的，但是我们建议将其拆分为其他的对象，
+并在必要的时候提供接口。
+这样做的目的是将控制器从具体的实现中解耦，
+从而在之后变更实现方式的时候无需更改控制器。
+使用接口同时也方便测试，从而你可以很方便的提供 mock。
 
-## Why are there so many controllers?
+## 为什么这里需要如此多的控制器。
 
-With the exception of our `ListController`, we created a controller for each
-route we added.
+除了 `ListController` 外，我们还为每个路由都创建了一个控制器。
 
-We could have combined these into a single controller. In practice, we have
-observed the following when doing so:
+我们可以将其都放入一个控制器中，但是在实施中我们可能会发现如下几个问题：
 
-- Controllers grow in complexity, making maintenance and additions more
-  difficult.
-- The number of dependencies grows with the number of responsibilities. Many
-  actions may need only a subset of the dependencies, leading to needless
-  performance and resource overhead.
-- Testing becomes more difficult.
-- Re-use becomes more difficult.
+- 控制器的复杂度不断增加，从而使得维护变得更加苦难。
+- 依赖也随着功能的增加而不断增加。许多的方法可能只需要其中几个依赖，
+  从而造成了性能和资源的开销。
+- 测试会变得比较困难。
+- 重用也会不那么容易。
 
-The primary problem is that such controllers quickly break the
-[Single Responsibility Principle](https://en.wikipedia.org/wiki/Single_responsibility_principle),
-and inherit all the problems that principle attempts to combat.
+主要问题在于，这种控制器就打破了[单一责任原则](https://en.wikipedia.org/wiki/Single_responsibility_principle),
+试图去解决所有的问题。
 
-We recommend a single action per controller whenever possible.
+我们建议尽可能的在一个控制器中实现一个操作。
 
-## Do you have more questions? PR them!
+## 如果还有更多问题? PR them!
 
-If there's anything you feel that's missing in this FAQ, please create an issue
-or send a pull request with your question!
+如果你还有其他问题，直接去官方论坛提问即可！
