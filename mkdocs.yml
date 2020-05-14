@@ -23,7 +23,7 @@ nav:
           - "使用表单和字段": in-depth-guide/laminas-form-laminas-form-fieldset.md
           - "添加或删除数据": in-depth-guide/data-binding.md
           - "回顾博客模块": in-depth-guide/review.md
-      - "Advanced Configuration": advanced-config.md
+      - "高级配置技巧": advanced-config.md
       - Internationalization: i18n.md
     - "Component Tutorials":
       - "Setting Up A Database Adapter": db-adapter.md

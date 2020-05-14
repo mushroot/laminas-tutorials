@@ -1,33 +1,30 @@
-# Advanced Configuration Tricks
+# 高级配置技巧
 
-Configuration of laminas-mvc applications happens in several steps:
+laminas-mvc 应用的配置分如下几个步骤：
 
-- Initial configuration is passed to the `Application` instance and used to seed
-  the `ModuleManager` and `ServiceManager`. In this tutorial, we will call this
-  configuration **system configuration**.
-- The `ModuleManager`'s `ConfigListener` aggregates configuration and merges it
-  while modules are being loaded. In this tutorial, we will call this
-  configuration **application configuration**.
-- Once configuration is aggregated from all modules, the `ConfigListener` will
-  also merge application configuration globbed in specified directories
-  (typically `config/autoload/`).
-- Finally, immediately prior to the merged application configuration being
-  passed to the `ServiceManager`, it is passed to a special `EVENT_MERGE_CONFIG`
-  event to allow further modification.
+- 初始化配置并将其传递给 `Application` 实例，
+  同时分发给  `ModuleManager` 和 `ServiceManager`。
+  本教程中，我们将这种配置称之为 **系统配置**。
+- `ModuleManager` 的 `ConfigListener` 会将配置进行聚合并在模块加载的时候合并。
+  在本教程中，我们将其称之为 **应用配置**。
+- 一旦从所有模块中聚合了配置，`ConfigListener`
+  还会将制定目录（ 通常是 `config/autoload/`）的应用配置合并。
+- 最后在将应用的配置传递给 `ServiceManager` 之前，
+  还会将其传递给制定的 `EVENT_MERGE_CONFIG` 事件，以允许将来做其他更改。
 
-In this tutorial, we'll look at the exact sequence, and how you can tie into it.
+在本教程中，我们将研究具体的排列，以及如何将其绑定到应用中。
 
-## System configuration
+## 系统配置
 
-To begin module loading, we have to tell the `Application` instance about the
-available modules and where they live, optionally provide some information to
-the default module listeners (e.g., where application configuration lives, and
-what files to load; whether to cache merged configuration, and where; etc.), and
-optionally seed the `ServiceManager`. For purposes of this tutorial we will call
-this the **system configuration**.
+模块加载的时候，我们需要告诉 `Application` 实例哪些模块需要加载，
+同时还可以向默认模块的监听器提供一个信息
+（例如：应用配置的位置以及要加载的文件；配置是否缓存以及缓存的位置等等）
+还可以选择将配置传递给 `ServiceManager`。
+在本教程中，我们称之为 ***系统配置**。
 
-When using the skeleton application, the **system configuration** is by default
-in `config/application.config.php`. The defaults look like this:
+当使用骨架应用的时候， **系统配置** 默认在
+`config/application.config.php` 文件中。
+默认内容如下：
 
 ```php
 return [
@@ -87,67 +84,52 @@ return [
 ];
 ```
 
-The system configuration is for the bits and pieces related to the MVC that run
-before your application is ready. The configuration is usually brief, and quite
-minimal.
+系统配置适用于在应用程序就绪之前配置 MVC 的相关细节。
+这些配置通常比较简短。
 
-Also, system configuration is used *immediately*, and is not merged with any
-other configuration &mdash; which means, with the exception of the values under
-the `service_manager` key, it cannot be overridden by a module.
+此外，系统配置会被 *立即* 使用，并且不会和其他配置合并
+&mdash; 这就意味着除了 `service_manager` 中的值意外，他将不能被别的模块重写。
 
-This leads us to our first trick: how do you provide environment-specific system
-configuration?
+这里我们将提供一个技巧：如何提供特定环境的配置？
 
-### Environment-specific system configuration
+### 特定系统环境的配置
 
-What happens when you want to change the set of modules you use based on the
-environment? Or if the configuration caching should be enabled based on
-environment?
+当你在开发环境的时候想要对模块进行一些配置如何操作呢？
+或者如果需要在开发环境中禁用配置缓存？
 
-It is for this reason that the default system configuration we provide in the
-skeleton application is in PHP; providing it in PHP means you can
-programmatically manipulate it.
+这就是为什么我们的骨架应用提供的摸摸人配置是 PHP;
+提供 PHP 配置就意味着你可以通过编程的方式来做修改。
 
-As an example, let's make the following requirements:
+例如，我们可能有如下需求：
 
-- We want to use the `Laminas\\DeveloperTools` module in development only.
-- We want to have configuration caching on in production only.
+- 我们只想要在开发环境中使用 `Laminas\\DeveloperTools` 模块。
+- 我们只想在生产环境中开启配置缓存。
 
 [laminas/laminas-development-mode](https://github.com/laminas/laminas-development-mode)
-provides a concise and conventions-based approach to switching between
-specifically production and development.  The package is installed by default
-with version 3+ skeletons, and can be installed with existing v2 skeletons
-using the following:
+提供了一个简洁且公认的方法来对生产环境和开发环境进行切换。
+当前包默认在 3+ 版本进行了安装，在 V2 版本中可以通过如下方式安装：
 
 ```bash
 $ composer require laminas/laminas-development-mode
 ```
 
-The approach it takes is as follows:
+它采用如下的实现方式：
 
-- The user provides production settings in `config/application.config.php`.
-- The user provides development settings in
-  `config/development.config.php.dist` to override bootstrap-level settings
-  such as modules and configuration caching, and optionally also in
-  `config/autoload/development.local.php.dist` (to override application
-  settings).
-- The bootstrap script (`public/index.php`) checks for
-  `config/development.config.php`, and, if found, merges its configuration with
-  the application configuration prior to configuring the `Application` instance.
+- 在 `config/application.config.php` 中提供生产环境的信息。
+- 在 `config/development.config.php.dist` 中配置开发环境的配置信息以覆盖引导层的设置，如模块及缓存信息。我们同样可以选择在 `config/autoload/development.local.php.dist` 覆盖应用的配置信息。
+- 引导脚本（`public/index.php`）将检查 `config/development.config.php`，如果存在则将其与应用的配置文件合并并传递给 `应用`。
 
-When you execute:
+接下来我们执行：
 
 ```bash
 $ ./vendor/bin/laminas-development-mode enable
 ```
 
-The `.dist` files are copied to versions removing the suffix; doing so ensures
-they will then be used when invoking the application.
+`.dist` 文件将会被复制为一个不带后缀的版本；这样做的目的是保证其能被应用所引用。
 
-As such, to accomplish our goals, we will do the following:
+因此为了实现我们的最终目标，我们将做如下操作：
 
-- In `config/development.config.php.dist`, add `Laminas\\DeveloperTools` to the list
-  of modules:
+- 在 `config/development.config.php.dist` 中添加 `ZendDeveloperTools` 到模块列表中：
 
   ```php
   'modules' => [
@@ -155,87 +137,83 @@ As such, to accomplish our goals, we will do the following:
   ],
   ```
 
-- Also in `config/development.config.php.dist`, we will disable config caching:
+- 同样我也可以在 `config/development.config.php.dist` 中禁用缓存：
 
   ```php
   'config_cache_enable' => false,
   ```
 
-- In `config/application.config.php`, we will enable config caching:
+
+- 在 `config/application.config.php` 中启用缓存：
 
   ```php
   'config_cache_enable' => true,
   ```
 
-Enabling development mode now enables the selected module, and disables
-configuration caching; disabling development mode enables configuration
-caching. (Also, either operation clears the configuration cache.)
 
-If you require additional environments, you can extend laminas-development-mode to
-address them using the same workflow.
+启用开发模式将会启用指定的模块，并禁用配置文件的缓存；禁用开发模式将会开启配置缓存（同样，缓存文件也讲会被清理）。
 
-### Environment-specific application configuration
 
-Sometimes you want to change application configuration to load things such as
-database adapters, log writers, cache adapters, and more based on the
-environment. These are typically managed in the service manager, and may be
-defined by modules. You can override them at the application level via
-`Laminas\ModuleManager\Listener\ConfigListener`, by specifying a glob path in the
-**system configuration** &mdash; the `module_listener_options.config_glob_paths`
-key from the previous examples.
+如果你希望继续扩展环境，可以通过扩展 laminas-development-mode 来实现。
 
-The default value for this is `config/autoload/{{,*.}global,{,*.}local}.php`.
-What this means is that it will look for **application configuration** files in
-the `config/autoload` directory, in the following order:
+### 特定环境的应用配置
+
+有时间你需要修改应用的配置文件以加载数据库适配器，日志记录，缓存适配器等等。
+这通常在服务管理器中定义，同时可能在模块中定义。
+你可以用过 `Laminas\ModuleManager\Listener\ConfigListener` 
+在应用层来进行修改。通过**系统配置**的一个特殊的全局参数 &mdash; 之前示例中的 
+`module_listener_options.config_glob_paths`。
+
+其默认参数为 `config/autoload/{{,*.}global,{,*.}local}.php`。
+这将意味着在 `config/autoload` 目录中寻找如下所示的 **应用配置**：
 
 - `global.php`
 - `*.global.php`
 - `local.php`
 - `*.local.php`
 
-This allows you to define application-level defaults in "global" configuration
-files, which you would then commit to your version control system, and
-environment-specific overrides in your "local" configuration files, which you
-would *omit* from version control.
+这种方式允许你在 "全局" 配置文件中定义应用层的默认值，
+以便你可以将其提交到版本控制系统中，
+转而在特定环境中使用 "local" 文件来保存参数，
+以便其不会被提交到版本控制系统中。
 
-> ### Additional glob patterns for development mode
+> ### 为开发模式增加 glob 匹配模式
 >
-> When using laminas-development-mode, as detailed in the previous section, the
-> shipped `config/development.config.php.dist` file provides an additional
-> glob pattern for specifying development configuration:
+> 当我们使用 laminas-development-mode 时，
+> 如上面的章节所述，`config/development.config.php.dist` 
+> 文件为特定的开发模式提供了一个 glob 匹配模式:
 >
 > - `config/autoload/{,*.}{global,local}-development.php`
 >
-> This will match files such as:
+> 这将匹配如下这种类型的文件：
 >
 > - database.global-development.php
 > - database.local-development.php
 >
-> These will only be considered when development mode is enabled!
+> 这将只在开发模式下引用！
 
-This is a great solution for development, as it allows you to specify alternate
-configuration that's specific to your development environment without worrying
-about accidently deploying it. However, what if you have more environments
-&mdash; such as a "testing" or "staging" environment &mdash; and they each have
-their own specific overrides?
+这对开发来说是一个比较好的解决方案，
+这样就可以让你随时切换为指定的配置,
+特别对于开发环境来说就避免了需要小心翼翼的来配置了。
 
-To accomplish this, we'll provide an *environment variable* via our web server
-configuration, `APP_ENV`. In Apache, you'd put a directive like the following
-in either your system-wide apache.conf or httpd.conf, or in the definition for
-your virtual host; alternately, it can be placed in an .htaccess file.
+然而，如果你想要更多的环境 &mdash; 
+例如 "测试" 或 "临时" 环境 &mdash; 
+也可以通过同样的方式来实现么？
+
+为了实现这个目的，我们需要在web服务器的配置中设置一个 *环境变量*，`APP_ENV`。
+在 Apache中，你需要添加如下命令在系统全局 apache.conf 
+或 http.conf 或者 virtual honst 文件中;
+甚至可以将其放置在 .htaccess 文件中。
 
 ```apacheconf
 SetEnv "APP_ENV" "development"
 ```
 
-For other web servers, consult the web server documentation to determine how to
-set environment variables.
+对于其他web服务器来说，可以参考其文档而定义环境变量。
 
-To simplify matters, we'll assume the environment is "production" if no
-environment variable is present.
+一般来说，如果环境变量不存在，我们就假设其为 "production"。
 
-With that in place, We can alter the glob path in the system configuration
-slightly:
+有了它，我们就可以在系统配置文件中更改 glob 路径，如下：
 
 ```php
 'config_glob_paths' => [
@@ -243,11 +221,10 @@ slightly:
 ],
 ```
 
-The above will allow you to define an additional set of application
-configuration files per environment; furthermore, these will be loaded *only* if
-that environment is detected!
+上面的代码允许你为每个配置环境定义一份系统的配置信息；而且 *只* 在环境生效的时候生效！
 
-As an example, consider the following tree of configuration files:
+
+参照如下单三个配置文件：
 
 ```text
 config/
@@ -259,8 +236,7 @@ config/
         users.local.php
 ```
 
-If `$env` evaluates to `testing`, then the following files will be merged, in
-the following order:
+如果 `$env` 判定为 `testing`，如下文件将会合并：
 
 ```text
 global.php
@@ -269,29 +245,25 @@ local.php
 users.local.php
 ```
 
-Note that `users.development.php` is not loaded &mdash; this is because it will
-not match the glob pattern!
+注意 `users.development.php` 将不会被加载 &mdash; 因为其不符合 glob 规则！
 
-Also, because of the order in which they are loaded, you can predict which
-values will overwrite the others, allowing you to both selectively overwrite as
-well as debug later.
+另外，由于加载顺序不同，你可以知道哪个文件的参数会覆盖另一个文件的参数，
+也可以选择性的覆盖一些值作为 debug 使用。
 
-> #### Order of config merging
+> #### 配置合并顺序
 >
-> The files under `config/autoload/` are merged *after* your module
-> configuration, detailed in next section. We have detailed it here, however, as
-> setting up the **application configuration** glob path happens within the
-> **system configuration** (`config/application.config.php`).
+> `config/autoload/` 中的文件会在模块的配置 *之后* 合并，
+> 详细的会在接下来的章节中讨论。
+> 这里我们详细介绍了在**系统配置**（`config/application.config.php`）
+> 中配置**应用配置**的 glob 路径。
 
-## Module Configuration
+## 模块配置
 
-One responsibility of modules is to provide their own configuration to the
-application. Modules have two general mechanisms for doing this.
+模块需要向应用提供他们自己的配置信息的。模块有两种机制来实现。
 
-**First**, modules that either implement
-`Laminas\ModuleManager\Feature\ConfigProviderInterface` and/or a `getConfig()`
-method can return their configuration. The default, recommended implementation
-of the `getConfig()` method is:
+**首先**，模块需要继承 `Laminas\ModuleManager\Feature\ConfigProviderInterface`
+并实现一个 `getConfig()` 方法用来返回其配置信息。通常， 
+`getConfig()` 方法的实现方式如下：
 
 ```php
 public function getConfig()
@@ -300,23 +272,18 @@ public function getConfig()
 }
 ```
 
-where `module.config.php` returns a PHP array. From that PHP array you can
-provide general configuration as well as configuration for all the available
-`Manager` classes provided by the ServiceManager. Please refer to the
-[Configuration mapping table](#configuration-mapping-table) to see which
-configuration key is used for each specific `Manager`.
+`module.config.php` 返回一个 PHP 数组。通过这个数组，可以提供一些基本的配置，以及 ServiceManager 提供的 `Manager` 类的配置。 参见
+[配置列表名录](#configuration-mapping-table) 查看哪些名次对应哪些 `Manager`。
 
-**Second**, modules can implement a number of interfaces and/or methods related
-to specific service manager or plugin manager configuration. You will find an
-overview of all interfaces and their matching Module Configuration functions
-inside the [Configuration mapping table](#configuration-mapping-table).
+**其次**，模块可以继承一些接口和服务管理器相关的方案或查件管理器的配置信息。
+你可以在[配置列表名录](#configuration-mapping-table) 中找到所有接口以及其
+对应的模块配置功能。
 
-Most interfaces are in the `Laminas\ModuleManager\Feature` namespace (some have
-moved to the individual components), and each is expected to return an array of
-configuration for a service manager, as denoted in the section on
-[default service configuration](http://docs.laminas.dev/laminas-mvc/services/#servicemanager).
+大多数的结构都在 `Laminas\ModuleManager\Feature` 命名空间下（少数移到了私人模块中），
+都将返回一个为服务管理器的数组，如
+[默认服务配置](docs.laminas.dev/laminas-mvc/services/#servicemanager).
 
-## Configuration mapping table
+## 配置列表名录
 
 Manager name               | Interface name                      | Module method name            | Config key name
 -------------------------- | ----------------------------------- | ----------------------------- | ---------------
@@ -334,41 +301,33 @@ Manager name               | Interface name                      | Module method
 `LogProcessorManager`      | `LogProcessorProviderInterface`     | `getLogProcessorConfig`       | `log_processors`
 `LogWriterManager`         | `LogWriterProviderInterface`        | `getLogWriterConfig`          | `log_writers`
 
-## Configuration Priority
+## 优先配置
 
-Considering that you may have service configuration in your module configuration file, what has precedence?
+想象下在模块配置文件中有多个服务配置文件，如何来判定优先权？
 
-The order in which they are merged is:
+其默认合并顺序为：
 
-- configuration returned by the various service configuration methods in a module class
-- configuration returned by `getConfig()`
+- 模块中的各种服务配置方法返回的配置
+- `getConfig()` 返回的配置
 
-In other words, your `getConfig()` wins over the various service configuration
-methods. Additionally, and of particular note: the configuration returned from
-those methods will *not* be cached.
+换句话说，`getConfig()` 优先级高于各种服务配置方法。
+另外，需要特别注意的是：这些方法返回的配置是 *无法* 缓存的。
 
-> ### Use cases for service configuration methods
+> ### 服务配置方法用法
 >
-> Use the various service configuration methods when you need to define closures
-> or instance callbacks for factories, abstract factories, and initializers.
-> This prevents caching problems, and also allows you to write your
-> configuration files in other markup formats.
+> 当你在定义闭包或工厂回调，静态工厂以及初始化应用程序的时候需要各种服务配置方法。
+> 这样就可以避免缓存的问题，同时还能通过其他的标记格式写入配置。
 
-## Manipulating merged configuration
+## 操作合并的配置
 
-Occasionally you will want to not just override an application configuration
-key, but actually remove it. Since merging will not remove keys, how can you
-handle this?
+有时，你不仅要覆盖应用程序指定配置的键，而且要删除它。
+由于合并操作并不会删除当前键，那么我们需要如何来实现呢？
 
-`Laminas\ModuleManager\Listener\ConfigListener` triggers a special event,
-`Laminas\ModuleManager\ModuleEvent::EVENT_MERGE_CONFIG`, after merging all
-configuration, but prior to it being passed to the `ServiceManager`. By
-listening to this event, you can inspect the merged configuration and manipulate
-it.
+`Laminas\ModuleManager\Listener\ConfigListener` 将会在合并所有的事件之后
+触发一个特殊的事件，`Laminas\ModuleManager\ModuleEvent::EVENT_MERGE_CONFIG`，
+且在传递给 `ServiceManager` 之前触发。通过监听这个事件，你可以检查并操作合并的配置。
 
-The `ConfigListener` itself listens to the event at priority 1000 (i.e., very
-high), which is when the configuration is merged. You can tie into this to
-modify the merged configuration from your module, via the `init()` method.
+`ConfigListener` 本身在合并配置的时候监听这个事件的优先级为 1000 （你可以理解为很高）。你可以通过当前模块的 `init()` 方法对合并后的配置进行修改。
 
 ```php
 namespace Foo;
@@ -403,35 +362,31 @@ class Module
 }
 ```
 
-At this point, the merged application configuration will no longer contain the
-key `some_key`.
+在这里，合并后的应用配置就不会包含 `some_key` 了。
 
-> ### Cached configuration and merging
+> ### 缓存配置的合并
 >
-> If a cached config is used by the `ModuleManager`, the `EVENT_MERGE_CONFIG`
-> event will not be triggered. However, typically that means that what is cached
-> will be what was originally manipulated by your listener.
+> 如果 `ModuleManager` 缓存了配置，`EVENT_MERGE_CONFIG` 事件将不会被触发。
+> 但是这也就意味着配置将会是监听器最初处理的内容。
 
-## Configuration merging workflow
+## 合并配置的工作流程
 
-To cap off the tutorial, let's review how and when configuration is defined and
-merged.
+在本教材结束的的时候，让我们来回顾下配置是何时何地定义以及合并的。
 
-- **System configuration**
-  - Defined in `config/application.config.php`
-  - No merging occurs
-  - Allows manipulation programmatically, which allows the ability to:
-    - Alter flags based on computed values
-    - Alter the configuration glob path based on computed values
-    - Configuration is passed to the `Application` instance, and then the
-      `ModuleManager` in order to initialize the system.
-- **Application configuration**
-  - The `ModuleManager` loops through each module class in the order defined in the **system configuration**
-    - Service configuration defined in `Module` class methods is aggregated
-    - Configuration returned by `Module::getConfig()` is aggregated
-    - Files detected from the **service configuration** `config_glob_paths`
-      setting are merged, based on the order they resolve in the glob path.
-    - `ConfigListener` triggers `EVENT_MERGE_CONFIG`:
-      - `ConfigListener` merges configuration
-      - Any other event listeners manipulate the configuration
-    - Merged configuration is finally passed to the `ServiceManager`
+
+- **系统配置**
+  - 在 `config/application.config.php` 中定义
+  - 无合并需求
+  - 可编程，以及：
+    - 根据计算状态更换标签
+    - 根据计算状态更换配置的 glob 路径。
+    - 配置将会传递给 `Application` 实例，紧接着 `ModuleManager` 将会用来初始化系统。
+- **应用配置**
+  - `ModuleManager` 遍历 **系统配置** 中的每个模块类
+    - 汇总 `Module` 类中定义的服务配置
+    - 汇总 `Module::getConfig()` 返回的配置
+    - 从**服务配置** 的 `config_glob_paths` 中查找配置文件，并按照他们再全局路径中的顺序进行合并。
+    - `ConfigListener` 触发 `EVENT_MERGE_CONFIG` 事件:
+      - `ConfigListener` 合并配置
+      - 处理其他监听器对配置的操作
+    - 最后通过 `ServiceManager` 合并配置
