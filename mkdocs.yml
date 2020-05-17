@@ -24,7 +24,7 @@ nav:
           - "添加或删除数据": in-depth-guide/data-binding.md
           - "回顾博客模块": in-depth-guide/review.md
       - "高级配置技巧": advanced-config.md
-      - Internationalization: i18n.md
+      - 国际化: i18n.md
     - "Component Tutorials":
       - "Setting Up A Database Adapter": db-adapter.md
       - "Using the EventManager": event-manager.md
