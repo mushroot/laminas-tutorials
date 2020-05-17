@@ -1,42 +1,38 @@
-# Setting up a Database Adapter
+# 配置数据库适配器
 
-laminas-db provides a general purpose database abstraction layer. At its heart is
-the `Adapter`, which abstracts common database operations across the variety of
-drivers we support.
+laminas-db 提供了一个通用的数据库抽象层。其核心就是 `Adapter`，
+他对我们常用的数据库的常用操作都做了抽象处理。
 
-In this guide, we will document how to configure both a single, default adapter
-as well as multiple adapters (which may be useful in architectures that have a
-cluster of read-only replicated servers and a single writable server of record).
+在本教程中，我们将学习如何配置单个的数据库适配器，以及多个适配器
+（这在集群环境下的读写分离结果可能会比较有用）。
 
-## Installing laminas-db
+## 安装 laminas-db
 
-First, install laminas-db using Composer:
+首先, 使用 Composer 安装 laminas-db:
 
 ```bash
 $ composer require laminas/laminas-db
 ```
 
-### Installation and automated Configuration
+### 安装并自动配置
 
-If you are using [laminas-component-installer](https://docs.laminas.dev/laminas-component-installer/)
-(installed by default with the skeleton application, and optionally for
-Mezzio applications), you will be prompted to install the package
-configuration.
+如果使用 [laminas-component-installer](https://docs.laminas.dev/laminas-component-installer/)
+（默认情况下会随着 skeleton application以及 Mezzio 一起安装），
+并选择需要安装配置的文件。
 
-- For laminas-mvc applications, choose either `application.config.php` or
+- 对于 laminas-mvc 应用, 选择`application.config.php` 或者
   `modules.config.php`.
-- For Mezzio applications, choose `config/config.php`.
+- 对于 Mezzio 应用, 选择 `config/config.php`.
 
-### Installation and manual Configuration
+### 安装并手动配置
 
-If you are not using the installer, you will need to manually configure add the
-component to your application.
+如果捏没有使用安装脚本，你可能需要手动配置并将组件添加到应用中。
 
-#### Configuration for a laminas-mvc-based Application
+#### 配置一个 laminas-mvc-based 应用
 
-For laminas-mvc applications, update your list of modules in either
-`config/application.config.php` or `config/modules.config.php` to add an
-entry for `'Laminas\Db'` at the top of the list:
+对于 laminas-mvc 应用，需要更新模块列表配置，
+在 `config/application.config.php` or `config/modules.config.php`
+文件的顶部添加 `'Laminas\Db'`：
   
 ```php
 // In config/modules.config.php
@@ -59,10 +55,11 @@ return [
 ];
 ```
 
-#### Configuration for a mezzio-based Application
+#### 配置一个 mezzio-based 应用
 
-For Mezzio applications, create a new file,
-`config/autoload/laminas-db.global.php`, with the following contents:
+对于 Mezzio 应用，创建一个新文件，
+`config/autoload/laminas-db.global.php`
+内容如下：
 
 ```php
 use Laminas\Db\ConfigProvider;
@@ -70,10 +67,10 @@ use Laminas\Db\ConfigProvider;
 return (new ConfigProvider())();
 ```
 
-## Configuring the default Adapter
+## 配置默认适配器
 
-Within your service factories, you may retrieve the default adapter from your application container using the
-class name `Laminas\Db\Adapter\AdapterInterface`:
+在工厂服务中，你可以使用类名 `Laminas\Db\Adapter\AdapterInterface`
+在应用容器中检索默认的适配器：
 
 ```php
 use Laminas\Db\Adapter\AdapterInterface;
@@ -83,10 +80,9 @@ function ($container) {
 }
 ```
 
-When installed and configured, the factory associated with `AdapterInterface`
-will look for a top-level `db` key in the configuration, and use it to create an
-adapter. As an example, the following would connect to a MySQL database using
-PDO, and the supplied PDO DSN:
+当我们安装并配置好了，与工厂服务关联的 `AdapterInterface`
+将在配置文件的顶层炒作 `db` key值，并试用其创建一个适配器。
+例如，下面的配置将会使用 PDO 连接一个 MySQL 数据库，并关联其PDO DSN：
 
 ```php
 // In config/autoload/global.php
@@ -98,19 +94,17 @@ return [
 ];
 ```
 
-More information on adapter configuration can be found in the docs for
+想要获取关于适配的更多信息，可以查看文档
 [Laminas\\Db\\Adapter](http://docs.laminas.dev/laminas-db/adapter/#creating-an-adapter-using-dependency-injection).
 
-## Configuring named Adapters
+## 配置命名适配器
 
-Sometimes you may need multiple adapters. As an example, if you work with a
-cluster of databases, one may allow write operations, while another may be
-read-only.
+某些时候，你可能需要多个适配器。
+例如，如果你使用集群数据库，并开启了读写分离。
 
-laminas-db provides an [abstract factory](https://docs.laminas.dev/laminas-servicemanager/configuring-the-service-manager/#abstract-factories),
-`Laminas\Db\Adapter\AdapterAbstractServiceFactory`, for this purpose. To use it,
-you will need to create named configuration keys under `db.adapters`, each with
-configuration for an adapter:
+laminas-db 为这种情况提供了一个 [abstract factory](https://docs.laminas.dev/laminas-servicemanager/configuring-the-service-manager/#abstract-factories),
+`Laminas\Db\Adapter\AdapterAbstractServiceFactory`。
+为了使用他，需要在 `db.adapters` 下为每个适配器创建命名配置：
 
 ```php
 // In config/autoload/global.php
@@ -130,13 +124,13 @@ return [
 ];
 ```
 
-You retrieve the database adapters using the keys you define, so ensure they are
-unique to your application, and descriptive of their purpose!
+你需要使用适配器的名称来调用他们，所以，需要确保他们再应用中是唯一的，
+并且需要描述其作用！
 
-### Retrieving named Adapters
+### 使用命名适配器
 
-Retrieve named adapters in your service factories just as you would another
-service:
+在工厂中使用命名适配和是用别的服务一样：
+
 
 ```php
 function ($container) {
@@ -144,15 +138,14 @@ function ($container) {
 }
 ```
 
-### Using the `AdapterAbstractServiceFactory` as a Factory
+### 使用 `AdapterAbstractServiceFactory` 作为工厂
 
-Depending on what application container you use, abstract factories may not be
-available. Alternately, you may want to reduce lookup time when retrieving an
-adapter from the container (abstract factories are consulted last!).
-laminas-servicemanager abstract factories work as factories in their own right, and
-are passed the service name as an argument, allowing them to vary their return
-value based on requested service name. As such, you can add the following
-service configuration as well:
+依照使用应用程序容器的不同，抽象方法可能也会不一样。
+另外，从容器中检索适配器的时候，你可能想减少检索的时间
+（抽象工厂是最后查询的！）
+laminas-servicemanager 抽象工厂以其自身作为一个抽象工厂，
+并且将服务名称作为自变量传递，从而允许它们根据请求的服务名称更改其返回值。 
+这样，您还可以添加以下服务配置：
 
 ```php
 use Laminas\Db\Adapter\AdapterAbstractServiceFactory;

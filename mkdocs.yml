@@ -25,8 +25,8 @@ nav:
           - "回顾博客模块": in-depth-guide/review.md
       - "高级配置技巧": advanced-config.md
       - 国际化: i18n.md
-    - "Component Tutorials":
-      - "Setting Up A Database Adapter": db-adapter.md
+    - "组件教程":
+      - "配置数据库适配器": db-adapter.md
       - "Using the EventManager": event-manager.md
     - Migration:
         - "To Version 3":
