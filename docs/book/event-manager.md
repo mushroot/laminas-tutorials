@@ -1,21 +1,18 @@
-# Using the EventManager
+# 使用事件管理器
 
-This tutorial explores the features of laminas-eventmanager in-depth.
+本教程将会深入探讨 laminas-eventmanager。
 
-## Terminology
+## 属于
 
-- An **Event** is a named action.
-- A **Listener** is any PHP callback that reacts to an *event*.
-- An **EventManager** *aggregates* listeners for one or more named events, and
-  *triggers* events.
+- **Event**：操作名。
+- **Listener**：对 *事件* 做出任何反应的PHP回调。
+- **EventManager**： 聚合了一个或多个事件的监听器，并触发事件。
 
-Typically, an *event* will be modeled as an object, containing metadata
-surrounding when and how it was triggered, including the event name, what object
-triggered the event (the "target"), and what parameters were provided. Events
-are *named*, which allows a single *listener* to branch logic based on the
-event.
+通常，*事件* 会被包装成一个对象，包含了如何触发事件的元数据，事件名称，
+触发对象（目标），以及需要提供的参数。
+事件将会被 *命名*，并允许单个 *监听器* 基于事件处理逻辑分支。
 
-## Getting started
+## 开始
 
 The minimal things necessary to start using events are:
 

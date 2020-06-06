@@ -27,7 +27,7 @@ nav:
       - 国际化: i18n.md
     - "组件教程":
       - "配置数据库适配器": db-adapter.md
-      - "Using the EventManager": event-manager.md
+      - "使用事件管理器": event-manager.md
     - Migration:
         - "To Version 3":
             - Overview: migration/to-v3/overview.md
