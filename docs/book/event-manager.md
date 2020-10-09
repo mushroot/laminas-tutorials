@@ -14,13 +14,13 @@
 
 ## 开始
 
-The minimal things necessary to start using events are:
+使用事件最基本的要求是：
 
-- An `EventManager` instance
-- One or more listeners on one or more events
-- A call to `trigger()` an event
+- 一个 `EventManager` 实例
+- 一个或者多个事件及其一个或者多个监听器
+- 调用 `trigger()` 事件
 
-A basic example looks something like this:
+一个基本的示例如下：
 
 ```php
 use Laminas\EventManager\EventManager;
@@ -40,29 +40,24 @@ $params = ['foo' => 'bar', 'baz' => 'bat'];
 $events->trigger('do', null, $params);
 ```
 
-The above will result in the following:
+以上内容将会返回如下内容：
 
 ```text
 Handled event "do", with parameters {"foo":"bar","baz":"bat"}
 ```
 
-> ### Closures are not required
+> ### 并非一定要使用闭包
 >
-> Throughout this tutorial, we use closures as listeners. However, any valid PHP
-> callback can be attached as a listeners: PHP function names, static class
-> methods, object instance methods, functors, or closures. We use closures
-> within this post for illustration only.
+> 本教程中，我们使用闭包函数作为监听器。但是，任何有效的PHP回调都可以作为监听器使用：
+> PHP 函数名，静态类方法，对象实例，函数或者闭包。我们在本文中仅使用闭包。
 
-### Event instances
+### 事件实例
 
-`trigger()` is useful as it will create a `Laminas\EventManager\Event` instance for
-you. You may want to create such an instance manually; for instance, you may
-want to re-use the same event instance to trigger multiple events, or you may
-want to use a custom instance.
+`trigger()` 是比较常用的，他会为你创建一个 `Laminas\EventManager\Event` 实例。
+同时你可能想要首场创建实例；例如，希望复用同一实例来触发多个事件，或者你希望使用一些自定义的实例。
 
-`Laminas\EventManager\Event`, which is the shipped event type and the one used by
-the `EventManager` by default  has a constructor that accepts the same three
-arguments passed to `trigger()`:
+`Laminas\EventManager\Event`, 是附带的默认事件类型，并且 `EventManager` 使用的事件类型都
+需要一个构造函数，该构造函数同 `trigger()` 一样接收三个参数：
 
 ```php
 use Laminas\EventManager\Event;
@@ -70,8 +65,7 @@ use Laminas\EventManager\Event;
 $event = new Event('do', null, $params);
 ```
 
-When you have an instance available, you will use a different `EventManager`
-method to trigger the event: `triggerEvent()`. As an example:
+当你具有了一个可用的实例之后，你就需要使用 `EventManager` 的 `triggerEvent()` 来触发事件，例如：
 
 ```php
 $events->triggerEvent($event);
@@ -79,14 +73,12 @@ $events->triggerEvent($event);
 
 ### Event targets
 
-If you were paying attention to the first example, you will have noted the
-`null` second argument both when calling `trigger()` as well as creating an
-`Event` instance. Why is it there?
+如果你观察过上面第一个实例，你将会注意到在调用 `trigger()` 以及创建 `Event` 实例的时候
+设置的第二个参数 `null`，为什么需要这么设置呢？
 
-Typically, you will compose an `EventManager` within a class, to allow
-triggering actions within methods. The middle argument to `trigger()` is the
-"target", and in the case described, would be the current object instance. This
-gives event listeners access to the calling object, which can often be useful.
+通常，你需要在类中构建一个 `EventManager`，以允许在方法内进行触发操作。
+`trigger()` 中间一个参数就是 "target"，简单点说就是当前对象的实例，
+这就使得事件监听器可以访问并调用对象，这是很实用的。
 
 ```php
 use Laminas\EventManager\EventManager;
@@ -139,29 +131,23 @@ $example->getEventManager()->attach('doIt', function($e) {
 $example->doIt('bar', 'bat');
 ```
 
-The above is basically the same as the first example. The main difference is
-that we're now using that middle argument in order to pass the target, the
-instance of `Example`, on to the listeners. Our listener is now retrieving that
-(`$e->getTarget()`), and doing something with it.
+上面的内容与第一个示例基本相同。主要的区别在于我们使用了中间那个参数以传递 target，
+即实例 `Example` 给监听器。监听器会查找 (`$e->getTarget()`) 并执行。
 
-If you're reading this critically, you should have a new question: What is the
-call to `setIdentifiers()` for?
+如果你足够仔细，可能会有一个新的问题：`setIdentifiers()` 又是用来干嘛的呢？
 
 ## Shared managers
 
-One aspect that the `EventManager` implementation provides is an ability to
-compose a `SharedEventManagerInterface` implementation.
+一方面 `EventManager` 提供了 `SharedEventManagerInterface` 的实现方式。
 
-`Laminas\EventManager\SharedEventManagerInterface` describes an object that
-aggregates listeners for events attached to objects with specific *identifiers*.
-It does not trigger events itself. Instead, an `EventManager` instance that
-composes a `SharedEventManager` will query the `SharedEventManager` for
-listeners on identifiers it's interested in, and trigger those listeners as
-well.
+`Laminas\EventManager\SharedEventManagerInterface` 定义了一个对象，
+该对象聚合监听器以监听附加到具有特定 *标识符* 的对象。他本身并不能主动触发。
+相反的是，构成 `SharedEventManager` 的 `EventManager` 实例会在
+`SharedEventManager` 上查询具有某种标识符的监听器并触发他。
 
-How does this work, exactly?
+那么他们是如何工作的呢？
 
-Consider the following:
+见下面示例：
 
 ```php
 use Laminas\EventManager\SharedEventManager;
@@ -180,19 +166,15 @@ $sharedEvents->attach('Example', 'do', function ($e) {
 });
 ```
 
-This looks almost identical to the previous example; the key difference is that
-there is an additional argument at the *start* of the list, `'Example'`. This
-code is saying, "Listen to the 'do' event of the 'Example' target, and, when
-notified, execute this callback."
+这看起来和之前的示例几乎相同，不同点在于参数列表 *之前* 多了一个参数 `'Example'`。
+这部分代码表示 “监听目标事件 'Example' 的 'do' 事件，并在收到通知的时候执行回调。”
 
-This is where the `setIdentifiers()` argument of `EventManager` comes into play.
-The method allows passing a string, or an array of strings, defining the name or
-names of the context or targets the given instance will be interested in. If an
-array is given, then any listener on any of the targets given will be notified.
+这时就该 `EventManager` 的 `setIdentifiers()` 参数起作用了。
+此方法接受一个字符串或者一个字符串数组，以定义给定实例相关的上下文名称或者目标名称。
+如果给定一个数组，将会通知给定目标事件的所有监听器。
 
-So, getting back to our example, let's assume that the above shared listener is
-registered, and also that the `Example` class is defined as above. We can then
-execute the following:
+因此，回到我们的示例，假定前面的共享监听器都被注册了，并且 `Example` 类也如上定义了。
+我们就可以执行如下操作了：
 
 ```php
 $example = new Example();
@@ -200,13 +182,13 @@ $example->getEventManager()->setSharedManager($sharedEvents);
 $example->do('bar', 'bat');
 ```
 
-and expect the following to be `echo`'d:
+正常会打印如下结果：
 
 ```text
 Handled event "do" on target "Example", with parameters {"foo":"bar","baz":"bat"}
 ```
 
-Now, let's say we extended `Example` as follows:
+现在我们按照如下方式扩展 `Example`：
 
 ```php
 class SubExample extends Example
@@ -214,6 +196,8 @@ class SubExample extends Example
 }
 ```
 
+我们定义的 `setEventManager()` 方法有个有趣的点就是同时定义了 `__CLASS__` 和 `get_class($this)`。
+这就意味着我们在 `SubExample` 类中调用 `do()` 也将出发共享监听器！同时，
 One interesting aspect of our `setEventManager()` method is that we defined it
 to listen both on `__CLASS__` and `get_class($this)`. This means that calling
 `do()` on our `SubExample` class would also trigger the shared listener! It also

@@ -8,6 +8,21 @@
 ```bash
 $ composer create-project -s dev laminas/laminas-mvc-skeleton path/to/install
 ```
+> 速度太慢可以选择阿里云或者腾讯云的镜像
+> ```
+> // 安装 Composer
+> wget https://mirrors.cloud.tencent.com/composer/composer.phar
+> mv composer.phar  /usr/local/bin/composer
+> 
+> // 配置 composer 镜像
+> // 阿里云
+> composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
+> // 腾讯云
+> composer config -g repo.packagist composer https://mirrors.cloud.tencent.com/composer/
+> // 还原配置
+> composer config -g --unset repos.packagist
+> ```
+>
 
 这将安装一组初始化依赖环境，包括：
 

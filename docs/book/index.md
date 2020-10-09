@@ -14,23 +14,23 @@
             <li class="list-group-item"><a href="navigation/">添加 laminas-navigation 到 Album 模块</a></li>
             <li class="list-group-item"><a href="pagination/">添加 laminas-paginator 到 Album 模块</a></li>
             <li class="list-group-item"><a href="in-depth-guide/first-module/">深入教程</a></li>
-            <li class="list-group-item"><a href="advanced-config/">Advanced Configuration</a></li>
-            <li class="list-group-item"><a href="i18n/">Internationalization</a></li>
+            <li class="list-group-item"><a href="advanced-config/">高级配置技巧</a></li>
+            <li class="list-group-item"><a href="i18n/">国际化</a></li>
         </ul>
     </div>
 </div>
 
 <div class="panel panel-info">
     <div class="panel-heading">
-        <h3 class="panel-title">Component Tutorials</h3>
+        <h3 class="panel-title">组建教程</h3>
     </div>
 
     <div class="panel-body">
-        <p>The following are focused tutorials on specific components.</p>
+        <p>一下是几个重点组件的教程</p>
 
         <ul class="list-group">
-            <li class="list-group-item"><a href="db-adapter/">Setting Up A Database Adapter</a></li>
-            <li class="list-group-item"><a href="event-manager/">Using the EventManager</a></li>
+            <li class="list-group-item"><a href="db-adapter/">配置数据库适配器</a></li>
+            <li class="list-group-item"><a href="event-manager/">使用事件管理器</a></li>
         </ul>
     </div>
 </div>
